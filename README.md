@@ -2,7 +2,7 @@
 <a href="./docs/introduction.md"/>
 
 
-
+```
 /  # 项目根目录
 ├── docs/  # 项目文档
 │   ├── api/  # API接口文档（自动生成+手动补充）
@@ -139,3 +139,4 @@
 ├── .gitignore  # Git忽略文件配置
 ├── README.md  # 项目说明
 └── main.py  # 后端服务入口
+```
