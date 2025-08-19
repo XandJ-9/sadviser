@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票投资建议平台技术实现指南</title>
+    <style>
+        :root {
+            --primary: #1a202c;
+            --secondary: #4299e1;
+            --accent: #38a169;
+            --light: #e2e8f0;
+            --dark: #2d3748;
+            --warning: #f6ad55;
+            --danger: #e53e3e;
+            --code-bg: #2d3748;
+            --card-bg: #2d3748;
+            --border: #4a5568;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--primary);
+            color: var(--light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 280px;
+            background-color: var(--dark);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 2rem 1rem;
+            transition: transform 0.3s ease;
+            z-index: 100;
+            border-right: 1px solid var(--border);
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.8rem;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.6rem 1rem;
+            color: var(--light);
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(66, 153, 225, 0.1);
+            color: var(--secondary);
+        }
+
+        .nav-sub-item {
+            margin-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-sub-link {
+            color: #a0aec0;
+            font-size: 0.85rem;
+        }
+
+        .nav-sub-link:hover {
+            color: var(--light);
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 40px;
+            height: 40px;
+            background-color: var(--secondary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 99;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            max-width: 1200px;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--light);
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-top: 2rem;
+            color: var(--secondary);
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            margin-top: 1.5rem;
+            color: var(--light);
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        /* 代码块 */
+        .code-block {
+            background-color: var(--code-bg);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            border-left: 3px solid var(--secondary);
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .code-block pre {
+            white-space: pre-wrap;
+        }
+
+        .language-python .keyword { color: #79c0ff; }
+        .language-python .string { color: #a6e3a1; }
+        .language-python .comment { color: #94a3b8; }
+        .language-python .number { color: #f97316; }
+        .language-python .function { color: #f3f4f6; }
+
+        .language-sql .keyword { color: #79c0ff; }
+        .language-sql .string { color: #a6e3a1; }
+        .language-sql .comment { color: #94a3b8; }
+        .language-sql .operator { color: #f3f4f6; }
+
+        .language-javascript .keyword { color: #79c0ff; }
+        .language-javascript .string { color: #a6e3a1; }
+        .language-javascript .comment { color: #94a3b8; }
+        .language-javascript .number { color: #f97316; }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        th, td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: rgba(66, 153, 225, 0.1);
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: rgba(66, 153, 225, 0.05);
+        }
+
+        /* 卡片 */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        /* 列表 */
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* 按钮 */
+        .btn {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #3182ce;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .menu-toggle {
+                display: block;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 200;
+                background-color: var(--secondary);
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 0.5rem 1rem;
+                cursor: pointer;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+        }
+
+        /* 代码复制按钮 */
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--light);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        /* 提示框 */
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            background-color: rgba(56, 161, 105, 0.1);
+            border-left: 4px solid var(--accent);
+        }
+
+        .alert-warning {
+            background-color: rgba(246, 173, 85, 0.1);
+            border-left-color: var(--warning);
+        }
+
+        .alert-danger {
+            background-color: rgba(229, 62, 62, 0.1);
+            border-left-color: var(--danger);
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 2rem 0;
+        }
+
+        /* 标签 */
+        .tag {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            background-color: rgba(66, 153, 225, 0.2);
+            color: var(--secondary);
+        }
+
+        .tag-accent {
+            background-color: rgba(56, 161, 105, 0.2);
+            color: var(--accent);
+        }
+
+        .tag-warning {
+            background-color: rgba(246, 173, 85, 0.2);
+            color: var(--warning);
+        }
+
+        .tag-danger {
+            background-color: rgba(229, 62, 62, 0.2);
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" id="menuToggle">☰ 菜单</button>
+
+    <div class="container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">股票投资建议平台</div>
+                <div class="subtitle">技术实现指南</div>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#overview" class="nav-link">平台架构概述</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#data-layer" class="nav-link">数据层技术</a>
+                    <ul>
+                        <li class="nav-sub-item"><a href="#data-acquisition" class="nav-sub-link">数据获取</a></li>
+                        <li class="nav-sub-item"><a href="#data-storage" class="nav-sub-link">数据存储</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="#computation-layer" class="nav-link">计算层技术</a>
+                    <ul>
+                        <li class="nav-sub-item"><a href="#technical-indicators" class="nav-sub-link">技术指标计算</a></li>
+                        <li class="nav-sub-item"><a href="#strategy-engine" class="nav-sub-link">策略筛选与回测</a></li>
+                        <li class="nav-sub-item"><a href="#ml-ai" class="nav-sub-link">机器学习与AI</a></li>
+                        <li class="nav-sub-item"><a href="#quantum" class="nav-sub-link">量子计算</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="#service-layer" class="nav-link">服务层技术</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#frontend" class="nav-link">前端层技术</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#deployment" class="nav-link">部署与运维</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#optimization" class="nav-link">性能优化</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#future" class="nav-link">扩展与未来</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#summary" class="nav-link">总结与建议</a>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <section id="overview" class="section">
+                <h1>股票投资建议平台技术实现指南</h1>
+                <p>本指南提供股票投资建议平台完整的技术实现方案，涵盖平台架构设计、数据处理、计算引擎、前端开发、部署运维等关键环节，帮助开发者构建专业、高效的金融科技平台。</p>
+                
+                <div class="card">
+                    <h3>平台整体架构</h3>
+                    <p>股票投资建议平台采用分层架构设计，分为数据层、计算层、服务层、前端层和部署层五个核心层次，确保系统的可扩展性、可维护性和高性能。</p>
+                    <div class="code-block language-plaintext">
+                        <pre>用户 → 前端层 → 服务层 → 计算层 → 数据层</pre>
+                    </div>
+                    
+                    <h3>技术选型原则</h3>
+                    <ul>
+                        <li><strong>金融数据处理高效性</strong>：确保能够处理海量金融数据的实时和离线计算</li>
+                        <li><strong>技术栈成熟度</strong>：选择在金融科技领域已有成功应用案例的技术</li>
+                        <li><strong>可扩展性</strong>：技术架构应支持从初期小规模到后期大规模用户量的平滑扩展</li>
+                        <li><strong>实时性要求</strong>：满足实时行情数据处理和指标计算的时效性需求</li>
+                        <li><strong>合规与安全性</strong>：符合金融行业的数据安全和隐私保护要求</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="data-layer" class="section">
+                <h2>数据层技术实现</h2>
+                
+                <div id="data-acquisition">
+                    <h3>数据获取技术</h3>
+                    
+                    <h4>核心数据获取工具</h4>
+                    <p><strong>Python + requests/aiohttp</strong>是获取金融数据的基础工具：</p>
+                    <ul>
+                        <li><strong>requests</strong>：用于同步获取股票行情数据和基本面信息</li>
+                        <li><strong>aiohttp</strong>：用于异步批量获取数据，显著提高数据获取效率</li>
+                        <li><strong>异步IO优势</strong>：在批量获取上千只股票数据时，异步请求可将时间从小时级缩短至分钟级</li>
+                    </ul>
+                    
+                    <div class="code-header">
+                        <span>Python代码示例：使用aiohttp获取股票数据</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <div class="code-block language-python">
+                        <pre>import aiohttp
+import asyncio
+
+async def fetch_stock_data(session, symbol):
+    url = f'http://hq.sinajs.cn/list={symbol}'
+    async with session.get(url) as response:
+        return await response.text()
+
+async def main(symbols):
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_stock_data(session, symbol) for symbol in symbols]
+        results = await asyncio.gather(*tasks)
+        return results
+
+# 获取多只股票数据
+symbols = ['sh601006', 'sz000001', 'sz300465']
+data = asyncio.run(main(symbols))</pre>
+                    </div>
+                    
+                    <h4>数据解析技术</h4>
+                    <p><strong>Pandas + BeautifulSoup</strong>是数据解析的核心工具：</p>
+                    <ul>
+                        <li><strong>Pandas</strong>：强大的数据分析库，用于解析结构化数据（如CSV、JSON）</li>
+                        <li><strong>BeautifulSoup</strong>：用于解析网页内容，获取非结构化数据</li>
+                        <li><strong>数据清洗</strong>：处理缺失值、异常值和重复数据，确保数据质量</li>
+                    </ul>
+                    
+                    <div class="code-header">
+                        <span>Python代码示例：使用Pandas解析CSV数据</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <div class="code-block language-python">
+                        <pre>import pandas as pd
+
+# 从CSV文件读取数据
+df = pd.read_csv('stock_data.csv')
+
+# 数据清洗
+df = df.dropna()  # 删除缺失值
+df = df[df['volume'] > 0]  # 过滤无效成交量数据
+
+# 计算技术指标
+df['ma5'] = df['close'].rolling(window=5).mean()
+df['ma10'] = df['close'].rolling(window=10).mean()</pre>
+                    </div>
+                    
+                    <h4>实时数据获取补充</h4>
+                    <p>对于实时性要求高的场景，<strong>WebSocket</strong>技术是必要补充：</p>
+                    <ul>
+                        <li><strong>WebSocket协议</strong>：提供全双工通信，实现毫秒级实时数据更新</li>
+                        <li><strong>应用场景</strong>：实时行情监控、高频交易信号生成</li>
+                        <li><strong>兼容方案</strong>：对于不支持WebSocket的数据源，可使用轮询机制作为替代方案</li>
+                    </ul>
+                </div>
+                
+                <div id="data-storage">
+                    <h3>数据存储技术</h3>
+                    
+                    <h4>结构化数据存储</h4>
+                    <p><strong>PostgreSQL</strong>是金融数据存储的理想选择：</p>
+                    <ul>
+                        <li><strong>时间序列支持</strong>：配合pg_temporal插件，可高效存储和查询时序金融数据</li>
+                        <li><strong>索引优化</strong>：B-tree索引用于快速查询，GiST索引用于范围查询</li>
+                        <li><strong>数据分区</strong>：按时间范围分区，提高大数据量下的查询性能</li>
+                    </ul>
+                    
+                    <div class="code-header">
+                        <span>SQL代码示例：股票日线数据表</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <div class="code-block language-sql">
+                        <pre>CREATE TABLE stock_daily_data (
+    id SERIAL PRIMARY KEY,
+    symbol VARCHAR(10) NOT NULL,
+    date DATE NOT NULL,
+    open DECIMAL(10,2),
+    high DECIMAL(10,2),
+    low DECIMAL(10,2),
+    close DECIMAL(10,2),
+    volume BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 创建索引
+CREATE INDEX idx_stock_daily_symbol_date ON stock_daily_data (symbol, date);
+CREATE INDEX idx_stock_daily_date ON stock_daily_data (date);</pre>
+                    </div>
+                    
+                    <h4>非结构化数据存储</h4>
+                    <p><strong>MongoDB</strong>适合存储非结构化和半结构化数据：</p>
+                    <ul>
+                        <li><strong>文档型存储</strong>：灵活存储不同结构的技术指标计算结果</li>
+                        <li><strong>地理空间索引</strong>：可用于存储和查询地理位置相关的金融数据</li>
+                        <li><strong>GridFS</strong>：支持存储大文件，如研报文档、图片等</li>
+                    </ul>
+                    
+                    <h4>缓存与实时数据存储</h4>
+                    <p><strong>Redis</strong>作为内存数据库，在平台中扮演重要角色：</p>
+                    <ul>
+                        <li><strong>数据缓存</strong>：缓存高频访问的数据，减少数据库压力</li>
+                        <li><strong>实时数据存储</strong>：存储实时行情数据和计算结果</li>
+                        <li><strong>任务队列</strong>：配合Celery实现异步任务处理</li>
+                        <li><strong>会话存储</strong>：存储用户会话信息，支持分布式部署</li>
+                    </ul>
+                    
+                    <h4>历史大数据归档</h4>
+                    <p>对于海量历史数据，使用<strong>Apache Parquet + MinIO</strong>进行归档：</p>
+                    <ul>
+                        <li><strong>Parquet格式</strong>：列式存储格式，高效压缩和查询性能</li>
+                        <li><strong>MinIO</strong>：高性能对象存储，支持海量数据存储</li>
+                        <li><strong>数据分区</strong>：按时间和股票代码分区，便于批量查询和分析</li>
+                        <li><strong>数据生命周期管理</strong>：设置自动归档和清理策略，优化存储成本</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="computation-layer" class="section">
+                <h2>计算层技术实现</h2>
+                
+                <div id="technical-indicators">
+                    <h3>技术指标计算</h3>
+                    
+                    <h4>核心计算库选择</h4>
+                    <p><strong>TA-Lib + Pandas TA</strong>是技术指标计算的黄金组合：</p>
+                    <ul>
+                        <li><strong>TA-Lib</strong>：成熟的技术指标计算库，支持150+种技术指标</li>
+                        <li><strong>底层实现</strong>：C语言实现，计算效率高，适合批量计算</li>
+                        <li><strong>Pandas TA</strong>：基于Pandas的纯Python实现，灵活性高，易于扩展</li>
+                        <li><strong>混合使用</strong>：核心指标使用TA-Lib计算，自定义指标使用Pandas TA实现</li>
+                    </ul>
+                    
+                    <div class="code-header">
+                        <span>Python代码示例：使用TA-Lib计算MACD指标</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <div class="code-block language-python">
+                        <pre>import talib
+import numpy as np
+
+# 假设df是包含收盘价的Pandas DataFrame
+close = df['close'].values
+
+# 计算MACD指标
+macd, macdsignal, macdhist = talib.MACD(close, fastperiod=12, slowperiod=26, signalperiod=9)
+
+# 将结果添加到DataFrame
+df['macd'] = macd
+df['macdsignal'] = macdsignal
+df['macdhist'] = macdhist</pre>
+                    </div>
+                    
+                    <h4>高性能计算优化</h4>
+                    <p>为提高大规模数据计算效率，采用以下技术：</p>
+                    <ul>
+                        <li><strong>向量化计算</strong>：利用NumPy和Pandas的向量化操作替代循环</li>
+                        <li><strong>并行计算</strong>：使用Dask或Joblib实现多进程并行计算</li>
+                        <li><strong>GPU加速</strong>：对于大规模矩阵运算，使用CuPy或TensorFlow的GPU加速版本</li>
+                        <li><strong>内存优化</strong>：使用Pandas的category类型和适当的数据类型减少内存占用</li>
+                    </ul>
+                </div>
+                
+                <div id="strategy-engine">
+                    <h3>策略筛选与回测引擎</h3>
+                    
+                    <h4>策略筛选引擎</h4>
+                    <p>策略筛选引擎是平台的核心组件，负责根据技术指标筛选符合条件的股票：</p>
+                    <ul>
+                        <li><strong>多阶段过滤</strong>：基础条件过滤 → 核心指标筛选 → 二次验证 → 风险评估</li>
+                        <li><strong>表达式引擎</strong>：使用简单表达式语言描述筛选条件</li>
+                        <li><strong>规则引擎</strong>：将筛选条件转换为可执行的规则，提高执行效率</li>
+                        <li><strong>并行计算</strong>：使用多进程或线程池并行处理多只股票的筛选</li>
+                    </ul>
+                    
+                    <div class="code-header">
+                        <span>Python代码示例：策略筛选实现</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <div class="code-block language-python">
+                        <pre>def filter_stocks(df):
+    # 基础条件过滤
+    filtered = df[(df['price'] > 5) & (df['market_cap'] > 5e9)]
+    
+    # 核心指标筛选（趋势跟踪策略）
+    filtered = filtered[(filtered['close'] > filtered['ma60']) & 
+                       (filtered['ma60'] > filtered['ma250']) &
+                       (filtered['ma5'] > filtered['ma10']) &
+                       (filtered['ma10'] > filtered['ma20'])]
+    
+    # 二次验证（排除MACD顶背离）
+    filtered = filtered[~((filtered['close'] == filtered['close'].cummax()) &
+                         (filtered['macd'] < filtered['macd'].cummax()))]
+    
+    # 风险控制（设置止损位）
+    filtered['stop_loss'] = filtered['ma20']
+    
+    return filtered</pre>
+                    </div>
+                    
+                    <h4>回测引擎设计</h4>
+                    <p>回测引擎用于验证策略的有效性，是平台的关键组成部分：</p>
+                    <ul>
+                        <li><strong>回测框架</strong>：使用VectorBT或Backtrader构建回测系统</li>
+                        <li><strong>回测参数</strong>：支持自定义初始资金、交易费用、滑点设置等</li>
+                        <li><strong>评估指标</strong>：计算年化收益率、最大回撤、夏普比率等关键指标</li>
+                        <li><strong>可视化</strong>：生成资产净值曲线、收益分布直方图等可视化结果</li>
+                    </ul>
+                    
+                    <div class="code-header">
+                        <span>Python代码示例：使用VectorBT进行策略回测</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <div class="code-block language-python">
+                        <pre>import vectorbt as vbt
+
+# 假设price是包含收盘价的Pandas Series
+close = df['close']
+
+# 定义交易信号（均线交叉策略）
+ma5 = vbt.MA.run(close, window=5).ma
+ma10 = vbt.MA.run(close, window=10).ma
+entries = ma5.ma_crossed_above(ma10.ma)
+exits = ma5.ma_crossed_below(ma10.ma)
+
+# 执行回测
+portfolio = vbt.Portfolio.from_signals(close, entries, exits)
+
+# 评估回测结果
+print("年化收益率：", portfolio.stats('annual_return'))
+print("最大回撤：", portfolio.stats('max_drawdown'))
+print("夏普比率：", portfolio.stats('sharpe_ratio'))
+
+# 可视化结果
+portfolio.plot()</pre>
+                    </div>
+                </div>
+                
+                <div id="ml-ai">
+                    <h3>机器学习与AI增强模块</h3>
+                    
+                    <h4>机器学习模型应用</h4>
+                    <p>机器学习在股票投资建议平台中具有广泛应用：</p>
+                    <ul>
+                        <li><strong>特征工程</strong>：从原始数据中提取有价值的特征，如波动率、动量等</li>
+                        <li><strong>分类模型</strong>：预测股票未来涨跌方向</li>
+                        <li><strong>回归模型</strong>：预测股票未来价格或收益率</li>
+                        <li><strong>聚类分析</strong>：发现相似股票或市场模式</li>
+                    </ul>
+                    
+                    <div class="card">
+                        <h4>常用机器学习算法</h4>
+                        <div class="tag tag-accent">随机森林</div>
+                        <div class="tag tag-accent">梯度提升机</div>
+                        <div class="tag tag-accent">支持向量机</div>
+                        <div class="tag tag-accent">神经网络</div>
+                    </div>
+                    
+                    <h4>深度学习在金融中的应用</h4>
+                    <p>深度学习技术在金融预测中展现出强大潜力：</p>
+                    <ul>
+                        <li><strong>循环神经网络（RNN）和LSTM</strong>：适用于时序数据预测</li>
+                        <li><strong>Transformer模型</strong>：处理长序列数据，捕捉长期依赖关系</li>
+                        <li><strong>卷积神经网络（CNN）</strong>：分析金融时间序列的局部模式</li>
+                        <li><strong>生成对抗网络（GAN）</strong>：生成合成金融数据，用于增强训练集</li>
+                    </ul>
+                    
+                    <div class="code-header">
+                        <span>Python代码示例：使用LSTM进行股价预测</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <div class="code-block language-python">
+                        <pre>import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+
+# 数据准备（假设X_train和y_train是训练数据）
+X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
+
+# 构建LSTM模型
+model = Sequential()
+model.add(LSTM(50, activation='relu', input_shape=(X_train.shape[1], 1)))
+model.add(Dense(1))
+model.compile(optimizer='adam', loss='mse')
+
+# 训练模型
+model.fit(X_train, y_train, epochs=20, batch_size=32, validation_split=0.1)
+
+# 预测
+predictions = model.predict(X_test)</pre>
+                    </div>
+                </div>
+                
+                <div id="quantum">
+                    <h3>量子计算在金融中的应用</h3>
+                    <p>量子计算是金融科技的前沿领域，有望在2025年实现初步应用：</p>
+                    <ul>
+                        <li><strong>投资组合优化</strong>：量子算法可以更高效地解决大规模组合优化问题</li>
+                        <li><strong>期权定价</strong>：量子蒙特卡洛方法可以加速期权定价计算</li>
+                        <li><strong>风险模型</strong>：量子神经网络可以处理更复杂的风险模式</li>
+                    </ul>
+                    
+                    <div class="card">
+                        <h4>量子计算框架推荐</h4>
+                        <div class="tag tag-accent">TensorFlow Quantum</div>
+                        <div class="tag tag-accent">PennyLane</div>
+                        <div class="tag tag-accent">Qiskit</div>
+                    </div>
+                    
+                    <div class="code-header">
+                        <span>Python代码示例：使用TensorFlow Quantum进行量子投资组合优化</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <div class="code-block language-python">
+                        <pre>import tensorflow as tf
+import tensorflow_quantum as tfq
+import cirq
+
+# 定义量子电路
+qubits = cirq.GridQubit.rect(1, 2)
+circuit = cirq.Circuit(
+    cirq.H(qubits[0]),
+    cirq.CNOT(qubits[0], qubits[1]),
+    cirq.measure(qubits[0], key='q0'),
+    cirq.measure(qubits[1], key='q1')
+)
+
+# 将量子电路转换为TensorFlow可处理的格式
+input_state = tfq.convert_to_tensor([circuit])
+
+# 构建量子模型
+model = tf.keras.Sequential([
+    tfq.layers.PQC(circuit, cirq.Z(qubits[0])),
+    tf.keras.layers.Dense(1)
+])
+
+# 编译和训练模型
+model.compile(optimizer='adam', loss='mse')
+model.fit(input_state, y_train, epochs=10)</pre>
+                    </div>
+                    
+                    <h3>联邦学习在金融中的应用</h3>
+                    <p>联邦学习是2025年金融科技领域的重要趋势，特别适用于数据隐私敏感的场景：</p>
+                    <ul>
+                        <li><strong>跨机构数据协作</strong>：在不共享原始数据的情况下联合训练模型</li>
+                        <li><strong>合规性</strong>：符合数据隐私法规要求</li>
+                        <li><strong>数据孤岛解决</strong>：打破金融机构间的数据壁垒</li>
+                    </ul>
+                    
+                    <div class="card">
+                        <h4>联邦学习框架推荐</h4>
+                        <div class="tag tag-accent">TensorFlow Federated</div>
+                        <div class="tag tag-accent">PySyft</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="service-layer" class="section">
+                <h2>服务层技术实现</h2>
+                
+                <div class="card">
+                    <h3>API服务框架</h3>
+                    <p>API服务层是连接前端和后端的桥梁，负责处理请求和返回响应：</p>
+                    <ul>
+                        <li><strong>FastAPI</strong>：高性能异步API框架，适合处理金融数据的高并发请求</li>
+                        <li><strong>OpenAPI规范</strong>：自动生成API文档，便于前端开发和测试</li>
+                        <li><strong>请求验证</strong>：对输入参数进行严格验证，确保数据正确性</li>
+                        <li><strong>响应缓存</strong>：对频繁访问且不常变化的数据进行缓存，提高响应速度</li>
+                    </ul>
+                    
+                    <div class="code-header">
+                        <span>Python代码示例：使用FastAPI创建股票数据API</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <div class="code-block language-python">
+                        <pre>from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class StockRequest(BaseModel):
+    symbol: str
+    start_date: str
+    end_date: str
+
+@app.get("/api/v1/stock/quote")
+async def get_stock_quote(symbol: str, start_date: str, end_date: str):
+    # 从数据库获取股票数据
+    data = get_stock_data_from_db(symbol, start_date, end_date)
+    return {"data": data}</pre>
+                    </div>
+                </div>
+                
+                <h3>任务调度与异步处理</h3>
+                <p>任务调度系统负责定时执行数据更新、策略计算等后台任务：</p>
+                <ul>
+                    <li><strong>Celery</strong>：强大的分布式任务队列，支持定时任务和异步任务</li>
+                    <li><strong>Redis</strong>：作为Celery的消息代理和结果存储</li>
+                    <li><strong>定时任务</strong>：使用Celery Beat调度定时任务</li>
+                    <li><strong>任务监控</strong>：监控任务执行状态和性能指标</li>
+                </ul>
+                
+                <div class="alert alert-warning">
+                    <h4>任务调度场景</h4>
+                    <ul>
+                        <li>每日收盘后自动运行筛选程序</li>
+                        <li>定期更新历史数据</li>
+                        <li>定时执行策略回测</li>
+                        <li>生成每日投资建议报告</li>
+                    </ul>
+                </div>
+                
+                <h3>消息通知系统</h3>
+                <p>消息通知系统负责向用户推送重要信息和事件提醒：</p>
+                <ul>
+                    <li><strong>WebSocket</strong>：用于实时推送股票信号、市场变动等</li>
+                    <li><strong>邮件通知</strong>：用于发送每日报告、重要通知等</li>
+                    <li><strong>短信通知</strong>：用于紧急提醒和关键事件通知</li>
+                    <li><strong>站内信</strong>：用于平台内的消息通知</li>
+                </ul>
+            </section>
+
+            <section id="frontend" class="section">
+                <h2>前端层技术实现</h2>
+                
+                <div class="card">
+                    <h3>前端框架选择</h3>
+                    <p>前端框架是用户与平台交互的界面，直接影响用户体验：</p>
+                    <ul>
+                        <li><strong>React + JavaScript</strong>：主流的前端框架，适合构建复杂的单页应用</li>
+                        <li><strong>组件化开发</strong>：提高代码复用性和可维护性</li>
+                        <li><strong>状态管理</strong>：使用Redux或Context API管理应用状态</li>
+                        <li><strong>路由管理</strong>：使用React Router实现页面导航</li>
+                    </ul>
+                </div>
+                
+                <h3>金融数据可视化</h3>
+                <p>金融数据可视化是平台的核心功能之一，需要专业的图表库支持：</p>
+                <ul>
+                    <li><strong>ECharts</strong>：功能强大的开源图表库，支持自定义K线图和技术指标叠加</li>
+                    <li><strong>TradingView Widget</strong>：专业的金融图表库，提供高级的图表分析功能</li>
+                    <li><strong>D3.js</strong>：灵活的数据可视化库，适合创建自定义图表</li>
+                    <li><strong>Highcharts</strong>：商业图表库，提供丰富的金融图表类型</li>
+                </ul>
+                
+                <div class="code-header">
+                    <span>JavaScript代码示例：使用ECharts实现K线图</span>
+                    <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                </div>
+                <div class="code-block language-javascript">
+                    <pre>import * as echarts from 'echarts';
+
+function createKlineChart(container, data) {
+    const option = {
+        xAxis: {
+            type: 'category',
+            data: data.map(item => item.date)
+        },
+        yAxis: {},
+        series: [{
+            type: 'candlestick',
+            data: data.map(item => [item.open, item.high, item.low, item.close])
+        }]
+    };
+
+    const chart = echarts.init(container);
+    chart.setOption(option);
+    return chart;
+}</pre>
+                </div>
+                
+                <h3>状态管理与数据处理</h3>
+                <p>前端状态管理和数据处理是确保应用流畅运行的关键：</p>
+                <ul>
+                    <li><strong>Redux Toolkit</strong>：简化状态管理的工具集</li>
+                    <li><strong>SWR或React Query</strong>：数据获取和缓存库</li>
+                    <li><strong>Immutable.js</strong>：处理不可变数据，避免副作用</li>
+                    <li><strong>Web Workers</strong>：用于处理复杂计算，避免阻塞主线程</li>
+                </ul>
+            </section>
+
+            <section id="deployment" class="section">
+                <h2>部署与运维架构</h2>
+                
+                <div class="card">
+                    <h3>容器化与编排</h3>
+                    <p>容器化是现代应用部署的标准实践，提供环境一致性和可移植性：</p>
+                    <ul>
+                        <li><strong>Docker</strong>：将应用及其依赖打包成容器</li>
+                        <li><strong>Docker Compose</strong>：用于定义和运行多容器应用</li>
+                        <li><strong>Kubernetes</strong>：容器编排系统，用于大规模部署和管理</li>
+                        <li><strong>Helm</strong>：Kubernetes包管理器，简化应用部署</li>
+                    </ul>
+                </div>
+                
+                <h3>云基础设施选择</h3>
+                <p>云基础设施是平台运行的基础，选择合适的云服务提供商至关重要：</p>
+                <ul>
+                    <li><strong>AWS</strong>：全面的云服务，适合大规模部署</li>
+                    <li><strong>阿里云</strong>：本地化支持好，金融行业案例丰富</li>
+                    <li><strong>腾讯云</strong>：金融科技解决方案成熟</li>
+                    <li><strong>混合云</strong>：关键服务使用私有云，非关键服务使用公有云</li>
+                </ul>
+                
+                <h3>监控与日志系统</h3>
+                <p>监控与日志系统是确保平台稳定运行的重要保障：</p>
+                <ul>
+                    <li><strong>Prometheus</strong>：开源监控系统，用于收集和存储指标数据</li>
+                    <li><strong>Grafana</strong>：数据可视化工具，用于创建监控仪表盘</li>
+                    <li><strong>ELK Stack</strong>：用于日志管理和分析</li>
+                    <li><strong>APM工具</strong>：如New Relic、Datadog等，用于应用性能监控</li>
+                </ul>
+                
+                <div class="alert alert-danger">
+                    <h4>关键监控指标</h4>
+                    <ul>
+                        <li>API响应时间和错误率</li>
+                        <li>数据库连接数和查询性能</li>
+                        <li>任务队列长度和处理时间</li>
+                        <li>服务器资源使用情况（CPU、内存、磁盘）</li>
+                        <li>用户活跃度和操作行为</li>
+                    </ul>
+                </div>
+                
+                <h3>安全与合规</h3>
+                <p>金融数据安全至关重要，必须采取严格的安全措施：</p>
+                <ul>
+                    <li><strong>数据加密</strong>：传输加密（TLS）和存储加密</li>
+                    <li><strong>访问控制</strong>：基于角色的访问控制（RBAC）</li>
+                    <li><strong>审计日志</strong>：记录所有关键操作和访问</li>
+                    <li><strong>安全测试</strong>：定期进行渗透测试和安全评估</li>
+                    <li><strong>合规认证</strong>：如等保认证、ISO 27001等</li>
+                </ul>
+            </section>
+
+            <section id="optimization" class="section">
+                <h2>平台性能优化策略</h2>
+                
+                <div class="card">
+                    <h3>数据处理优化</h3>
+                    <p>数据处理是平台性能的关键瓶颈，需要进行针对性优化：</p>
+                    <ul>
+                        <li><strong>向量化计算</strong>：使用NumPy和Pandas的向量化操作替代循环</li>
+                        <li><strong>并行计算</strong>：利用多线程、多进程或分布式计算加速处理</li>
+                        <li><strong>内存管理</strong>：优化内存使用，避免内存泄漏和碎片</li>
+                        <li><strong>算法优化</strong>：选择高效的算法和数据结构</li>
+                    </ul>
+                </div>
+                
+                <h3>计算性能优化</h3>
+                <p>计算性能直接影响策略筛选和回测的效率：</p>
+                <ul>
+                    <li><strong>GPU加速</strong>：对支持GPU的计算任务使用GPU加速</li>
+                    <li><strong>量子加速</strong>：对特定金融计算使用量子计算加速</li>
+                    <li><strong>算法优化</strong>：选择时间复杂度更低的算法</li>
+                    <li><strong>并行处理</strong>：将计算任务分配到多个处理器或节点</li>
+                </ul>
+                
+                <h3>存储性能优化</h3>
+                <p>存储系统性能对平台响应速度有重要影响：</p>
+                <ul>
+                    <li><strong>索引优化</strong>：为经常查询的字段创建适当的索引</li>
+                    <li><strong>缓存优化</strong>：使用Redis缓存高频访问的数据</li>
+                    <li><strong>数据库优化</strong>：调整数据库参数以适应金融数据访问模式</li>
+                    <li><strong>读写分离</strong>：对于读多写少的场景，使用读写分离架构</li>
+                </ul>
+                
+                <h3>网络性能优化</h3>
+                <p>网络性能影响API响应时间和用户体验：</p>
+                <ul>
+                    <li><strong>CDN加速</strong>：使用内容分发网络加速静态资源</li>
+                    <li><strong>负载均衡</strong>：使用负载均衡器分发流量，避免单点故障</li>
+                    <li><strong>HTTP/2</strong>：使用HTTP/2协议提高传输效率</li>
+                    <li><strong>压缩</strong>：对API响应进行压缩，减少传输数据量</li>
+                </ul>
+            </section>
+
+            <section id="future" class="section">
+                <h2>平台扩展与未来发展</h2>
+                
+                <div class="card">
+                    <h3>水平扩展策略</h3>
+                    <p>随着用户量和数据量的增长，平台需要具备良好的扩展性：</p>
+                    <ul>
+                        <li><strong>负载均衡</strong>：使用负载均衡器分发流量</li>
+                        <li><strong>微服务架构</strong>：将单一应用拆分为多个微服务</li>
+                        <li><strong>分布式缓存</strong>：使用分布式缓存系统（如Redis Cluster）</li>
+                        <li><strong>分布式数据库</strong>：使用数据库集群或分布式数据库</li>
+                    </ul>
+                </div>
+                
+                <h3>AI增强型投资建议</h3>
+                <p>AI技术将深度融入投资建议平台，提升服务质量和用户体验：</p>
+                <ul>
+                    <li><strong>大语言模型</strong>：使用GPT-4等大模型生成投资分析报告</li>
+                    <li><strong>多模态分析</strong>：结合文本、图像、音频等多种数据进行分析</li>
+                    <li><strong>个性化推荐</strong>：基于用户行为和偏好提供个性化投资建议</li>
+                    <li><strong>智能问答</strong>：回答用户关于投资策略和市场分析的问题</li>
+                </ul>
+                
+                <h3>量子-经典混合计算</h3>
+                <p>量子计算与经典计算的混合应用将成为金融科技的重要发展方向：</p>
+                <ul>
+                    <li><strong>量子加速优化</strong>：利用量子计算加速投资组合优化</li>
+                    <li><strong>量子机器学习</strong>：将量子计算与机器学习结合，解决复杂金融问题</li>
+                    <li><strong>量子加密</strong>：使用量子技术增强数据安全性</li>
+                </ul>
+                
+                <div class="alert alert-warning">
+                    <h4>未来技术趋势</h4>
+                    <ul>
+                        <li>量子计算实用化</li>
+                        <li>神经符号系统</li>
+                        <li>数字孪生</li>
+                        <li>元宇宙金融服务</li>
+                        <li>自主金融智能体</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="summary" class="section">
+                <h2>总结与实施建议</h2>
+                
+                <div class="card">
+                    <h3>技术栈总结</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>技术层</th>
+                                <th>推荐技术</th>
+                                <th>核心优势</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>数据层</td>
+                                <td>Python + Pandas + TA-Lib</td>
+                                <td>高效处理金融数据，支持复杂指标计算</td>
+                            </tr>
+                            <tr>
+                                <td>计算层</td>
+                                <td>TensorFlow + TensorFlow Quantum + PennyLane</td>
+                                <td>支持AI和量子计算，满足复杂计算需求</td>
+                            </tr>
+                            <tr>
+                                <td>服务层</td>
+                                <td>FastAPI + Celery + Redis</td>
+                                <td>高性能API，支持异步任务和定时调度</td>
+                            </tr>
+                            <tr>
+                                <td>存储层</td>
+                                <td>PostgreSQL + MongoDB + Redis</td>
+                                <td>兼顾结构化查询、灵活存储和缓存需求</td>
+                            </tr>
+                            <tr>
+                                <td>前端层</td>
+                                <td>React + JavaScript + ECharts</td>
+                                <td>组件化开发，专业金融可视化</td>
+                            </tr>
+                            <tr>
+                                <td>部署层</td>
+                                <td>Docker + Kubernetes + Prometheus</td>
+                                <td>容器化部署，高可用监控</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3>实施路径建议</h3>
+                <p>基于平台规模和资源限制，推荐以下实施路径：</p>
+                
+                <h4>1. 最小可行产品(MVP)阶段</h4>
+                <ul>
+                    <li>使用Python + Pandas + TA-Lib实现基本数据处理和指标计算</li>
+                    <li>使用Flask或FastAPI构建简单API</li>
+                    <li>使用SQLite或轻量级数据库存储数据</li>
+                    <li>使用Matplotlib或ECharts实现基本图表展示</li>
+                </ul>
+                
+                <h4>2. 功能扩展阶段</h4>
+                <ul>
+                    <li>迁移到PostgreSQL数据库</li>
+                    <li>实现完整的策略筛选和回测引擎</li>
+                    <li>使用React构建更复杂的前端界面</li>
+                    <li>实现基本的用户管理和权限控制</li>
+                </ul>
+                
+                <h4>3. 规模化阶段</h4>
+                <ul>
+                    <li>实施容器化部署，使用Docker和Kubernetes</li>
+                    <li>实现分布式计算和存储</li>
+                    <li>引入AI和量子计算增强功能</li>
+                    <li>实现全面的监控和日志系统</li>
+                </ul>
+                
+                <h4>4. 生态扩展阶段</h4>
+                <ul>
+                    <li>开放API供第三方开发者使用</li>
+                    <li>引入社区功能，允许用户分享和讨论策略</li>
+                    <li>构建完整的投资教育生态系统</li>
+                    <li>实现跨平台（Web、移动、桌面）覆盖</li>
+                </ul>
+                
+                <div class="alert alert-accent">
+                    <h4>关键成功因素</h4>
+                    <ul>
+                        <li>数据质量：确保数据源的准确性和完整性</li>
+                        <li>计算效率：优化计算性能，满足实时性要求</li>
+                        <li>策略有效性：提供经过验证的有效投资策略</li>
+                        <li>用户体验：设计直观、易用的用户界面</li>
+                        <li>合规安全：确保平台符合金融监管要求，保障数据安全</li>
+                    </ul>
+                </div>
+                
+                <h3>未来发展方向</h3>
+                <p>平台未来可以向以下方向发展：</p>
+                <ul>
+                    <li><strong>全栈投资服务</strong>：从单一投资建议扩展到综合投资服务平台</li>
+                    <li><strong>社区生态建设</strong>：构建投资者社区，促进经验分享和交流</li>
+                    <li><strong>机构级服务</strong>：为专业投资机构提供定制化解决方案</li>
+                    <li><strong>全球化扩展</strong>：支持多市场、多币种的投资建议服务</li>
+                    <li><strong>智能投顾转型</strong>：从工具型平台向全流程智能投顾平台转型</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <div class="back-to-top" id="backToTop">↑</div>
+
+    <script>
+        // 菜单切换
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
+        
+        // 关闭菜单
+        document.addEventListener('click', (e) => {
+            if (!sidebar.contains(e.target) && e.target !== menuToggle) {
+                sidebar.classList.remove('active');
+            }
+        });
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 20,
+                        behavior: 'smooth'
+                    });
+                    
+                    // 关闭移动端菜单
+                    sidebar.classList.remove('active');
+                }
+            });
+        });
+        
+        // 返回顶部按钮
+        const backToTop = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+        
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 代码复制功能
+        function copyCode(button) {
+            const codeBlock = button.parentElement.nextElementSibling;
+            const code = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '已复制!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
+        }
+        
+        // 高亮当前章节
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            let currentSection = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                const sectionHeight = section.clientHeight;
+                
+                if (pageYOffset >= sectionTop && pageYOffset < sectionTop + sectionHeight) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${currentSection}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
