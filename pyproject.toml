@@ -1,0 +1,16 @@
+[project]
+name = "sadviser"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "aiohttp>=3.12.15",
+    "aioredis>=2.0.1",
+    "asyncio>=4.0.0",
+    "asyncpg>=0.30.0",
+    "motor>=3.7.1",
+    "pandas>=2.3.1",
+    "websockets>=15.0.1",
+    "pyarrow>=21.0.0",
+]
