@@ -5,10 +5,9 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 
-from .base_crawler import BaseCrawler
+from .base_crawler import BaseCrawler,logger
 
 # 配置日志
-logger = logging.getLogger(__name__)
 
 class TushareCrawler(BaseCrawler):
     """Tushare数据爬取器，获取专业股票数据"""

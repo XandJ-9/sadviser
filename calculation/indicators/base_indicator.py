@@ -22,7 +22,7 @@ class BaseIndicator:
         
         # 存储计算结果
         self.results: Optional[pd.DataFrame] = None
-        z
+        
         # 指标所需的基础数据列
         self.required_columns = ["open", "high", "low", "close", "volume"]
     

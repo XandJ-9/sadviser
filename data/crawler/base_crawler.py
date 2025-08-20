@@ -6,10 +6,13 @@ from typing import Dict, List, Optional, Union
 
 import aiohttp
 import pandas as pd
+from utils.custom_logger import CustomLogger
 
 # 配置日志
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s[%(lineno)s] - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = CustomLogger(
+    name="base_crawler",
+    log_level=logging.WARNING,
+    )
 
 class BaseCrawler(ABC):
     """爬虫基类，定义数据爬取的通用接口和基础功能"""
