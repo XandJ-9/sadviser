@@ -365,11 +365,12 @@ class BollingerBands(BaseIndicator):
 # 测试趋势指标
 def test_trend_indicators():
     """测试趋势类技术指标"""
-    import yfinance as yf
+    # import yfinance as yf
+    import akshare as ak
     import matplotlib.pyplot as plt
     
     # 获取测试数据（苹果公司股票数据）
-    data = yf.download("AAPL", start="2022-01-01", end="2023-01-01")
+    data = ak.download("AAPL", start="2022-01-01", end="2023-01-01")
     data = data.rename(columns={
         "Open": "open",
         "High": "high",
