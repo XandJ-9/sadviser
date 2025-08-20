@@ -20,17 +20,17 @@
 │
 ├── data/  # 数据相关模块
 │   ├── crawler/  # 数据爬取组件
-│   │   ├── base_crawler.py  # 爬虫基类
-│   │   ├── sina_crawler.py  # 新浪财经数据爬取
-│   │   ├── tushare_crawler.py  # Tushare数据爬取
-│   │   └── websocket_connector.py  # 实时行情WebSocket连接
+│   │   ├── base_crawler.py  # 爬虫基类 ✅
+│   │   ├── sina_crawler.py  # 新浪财经数据爬取 ✅
+│   │   ├── tushare_crawler.py  # Tushare数据爬取 ✅
+│   │   └── websocket_connector.py  # 实时行情WebSocket连接 ✅
 │   │
 │   ├── storage/  # 数据存储组件
-│   │   ├── base_storage.py  # 存储基类
-│   │   ├── postgres_storage.py  # PostgreSQL存储
-│   │   ├── mongodb_storage.py  # MongoDB存储
-│   │   ├── redis_cache.py  # Redis缓存
-│   │   └── parquet_archive.py  # Parquet格式历史数据归档
+│   │   ├── base_storage.py  # 存储基类 ✅
+│   │   ├── postgres_storage.py  # PostgreSQL存储 ✅
+│   │   ├── mongodb_storage.py  # MongoDB存储 ✅
+│   │   ├── redis_cache.py  # Redis缓存 ✅
+│   │   └── parquet_archive.py  # Parquet格式历史数据归档 ✅
 │   │
 │   └── processor/  # 数据处理组件
 │       ├── data_cleaner.py  # 数据清洗（去重、补全、格式转换）
@@ -39,21 +39,22 @@
 │
 ├── calculation/  # 计算核心模块
 │   ├── indicators/  # 技术指标计算
-│   │   ├── base_indicator.py  # 指标基类
-│   │   ├── trend_indicators.py  # 趋势类指标（均线、MACD等）
+│   │   ├── base_indicator.py  # 指标基类 ✅
+│   │   ├── trend_indicators.py  # 趋势类指标（均线、MACD等） ✅
 │   │   ├── momentum_indicators.py  # 动量类指标（RSI、KDJ等）
 │   │   ├── volume_indicators.py  # 量能类指标（成交量、OBV等）
 │   │   └── custom_indicators.py  # 自定义组合指标
 │   │
 │   ├── strategies/  # 策略筛选逻辑
-│   │   ├── base_strategy.py  # 策略基类
-│   │   ├── trend_strategy.py  # 趋势跟踪策略
+│   │   ├── base_strategy.py  # 策略基类 ✅
+│   │   ├── trend_strategy.py  # 趋势跟踪策略 ✅
 │   │   ├── breakout_strategy.py  # 突破策略
 │   │   ├── rebound_strategy.py  # 反弹策略
 │   │   └── strategy_combiner.py  # 多策略组合器
 │   │
 │   ├── backtest/  # 回测引擎
-│   │   ├── backtest_engine.py  # 回测核心逻辑
+│   │   ├── base_backtest.py  # 回测基类 ✅
+│   │   ├── backtest_engine.py  # 回测核心逻辑 
 │   │   ├── performance_metrics.py  # 绩效评估指标（胜率、夏普比率等）
 │   │   ├── result_analyzer.py  # 回测结果分析
 │   │   └── visualization.py  # 回测结果可视化
@@ -152,8 +153,12 @@
 全流程覆盖：包含从数据爬取、指标计算、策略筛选到前端展示、运维监控的完整链路，适配实际开发需求。
 合规与测试：预留文档目录和测试目录，便于完善需求说明、接口文档和自动化测试，符合金融类项目规范。
 
-# 操作步骤
-安装uv（如果本地有则忽略）
-> python -m pip install uv
-创建虚拟环境
-> 
+1. 安装依赖
+```bash
+uv sync
+```
+
+2. 启动服务
+```bash
+uv run main.py
+```
