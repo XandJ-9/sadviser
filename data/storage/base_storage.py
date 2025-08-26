@@ -3,9 +3,13 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Optional, Any, Tuple
 
+from utils.custom_logger import CustomLogger
+
 # 配置日志
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = CustomLogger(
+    name="base_storage",
+    log_level=logging.WARNING,
+    )
 
 class BaseStorage(metaclass=abc.ABCMeta):
     """存储基类，定义所有存储组件的通用接口"""
@@ -18,6 +22,7 @@ class BaseStorage(metaclass=abc.ABCMeta):
         """
         self.config = config
         self.connected = False
+        self.logger = logger
         
     @abc.abstractmethod
     async def connect(self) -> bool:
@@ -128,7 +133,7 @@ class BaseStorage(metaclass=abc.ABCMeta):
         :param data: 原始数据
         :return: 添加了时间戳的数据
         """
-        timestamp = datetime.now().isoformat()
+        timestamp = datetime.now()
         if "created_at" not in data:
             data["created_at"] = timestamp
         data["updated_at"] = timestamp
@@ -173,5 +178,5 @@ class BaseStorage(metaclass=abc.ABCMeta):
         :param e: 异常对象
         :param operation: 正在执行的操作名称
         """
-        logger.error(f"存储操作 '{operation}' 失败: {str(e)}")
+        self.logger.exception(f"存储操作 '{operation}' 失败: {str(e)}")
         # 在生产环境中，这里可以添加更复杂的错误处理，如自动重连等

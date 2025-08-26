@@ -1,6 +1,3 @@
 import aiohttp
 
 
-
-aiohttp.web()
-

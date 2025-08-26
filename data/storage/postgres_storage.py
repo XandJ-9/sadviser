@@ -8,8 +8,7 @@ from asyncpg import Connection, Pool
 
 from .base_storage import BaseStorage
 
-# 配置日志
-logger = logging.getLogger(__name__)
+
 
 class PostgreSQLStorage(BaseStorage):
     """PostgreSQL存储组件，用于存储结构化的股票数据"""
@@ -49,10 +48,10 @@ class PostgreSQLStorage(BaseStorage):
             
             if self.pool:
                 self.connected = True
-                logger.info(f"成功连接到PostgreSQL数据库: {self.config.get('host')}:{self.config.get('port')}/{self.config.get('database')}")
+                self.logger.info(f"成功连接到PostgreSQL数据库: {self.config.get('host')}:{self.config.get('port')}/{self.config.get('database')}")
                 return True
             else:
-                logger.error("创建PostgreSQL连接池失败")
+                self.logger.error("创建PostgreSQL连接池失败")
                 return False
                 
         except Exception as e:
@@ -64,7 +63,7 @@ class PostgreSQLStorage(BaseStorage):
         if self.pool:
             try:
                 await self.pool.close()
-                logger.info("已关闭PostgreSQL连接池")
+                self.logger.info("已关闭PostgreSQL连接池")
             except Exception as e:
                 self._handle_exception(e, "关闭PostgreSQL连接")
         
@@ -145,7 +144,7 @@ class PostgreSQLStorage(BaseStorage):
             values.extend(data.values())
         
         sql = f"INSERT INTO {table_name} ({columns_str}) VALUES {', '.join(placeholders)}"
-        
+        self.logger.debug(f"批量插入SQL: {sql} with values {values}")
         conn = await self._get_connection()
         if not conn:
             return (0, total)
@@ -334,7 +333,7 @@ class PostgreSQLStorage(BaseStorage):
             
         try:
             await conn.execute(sql)
-            logger.info(f"表 {table_name} 创建成功或已存在")
+            self.logger.info(f"表 {table_name} 创建成功或已存在")
             return True
         except Exception as e:
             self._handle_exception(e, f"创建表 {table_name}")
@@ -443,7 +442,7 @@ async def create_stock_tables(storage: PostgreSQLStorage) -> bool:
     stock_daily_schema = {
         "id": "SERIAL PRIMARY KEY",
         "code": "VARCHAR(20) NOT NULL",  # 股票代码
-        "date": "DATE NOT NULL",  # 日期
+        "date": "VARCHAR(20) NOT NULL",  # 日期
         "open": "NUMERIC(10, 2)",  # 开盘价
         "high": "NUMERIC(10, 2)",  # 最高价
         "low": "NUMERIC(10, 2)",  # 最低价
