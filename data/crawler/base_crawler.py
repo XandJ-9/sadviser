@@ -11,7 +11,7 @@ from utils.custom_logger import CustomLogger
 # 配置日志
 logger = CustomLogger(
     name="base_crawler",
-    log_level=logging.WARNING,
+    log_level=logging.INFO,
     )
 
 class BaseCrawler(ABC):

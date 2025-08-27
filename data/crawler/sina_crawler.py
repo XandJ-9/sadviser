@@ -218,14 +218,14 @@ async def test_sina_crawler():
     async with SinaCrawler() as crawler:
         # 测试获取日线数据
         print("测试获取日线数据...")
-        df = await crawler.fetch_daily_data('sh600000', '2023-01-01', '2023-12-31')
+        df = await crawler.fetch_daily_data('sz300003', '2023-01-01', '2023-12-31')
         print(f"获取到 {len(df)} 条日线数据")
         if not df.empty:
             print(df.head())
         
         # 测试获取实时行情
         print("\n测试获取实时行情...")
-        symbols = ['sh600000', 'sz000001', 'sz300059']
+        symbols = ['sz300003']
         quotes = await crawler.fetch_realtime_quote(symbols)
         print(f"获取到 {len(quotes)} 条实时行情数据")
         for symbol, quote in quotes.items():

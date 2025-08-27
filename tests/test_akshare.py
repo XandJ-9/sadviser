@@ -1,5 +1,7 @@
 import akshare as ak
+from utils.custom_logger import CustomLogger
 
+logger = CustomLogger()
 
 def test_get_stock_zh_index_daily():
     """测试获取中国股票指数的日线数据"""

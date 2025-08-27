@@ -3,6 +3,9 @@ import os
 import sys
 from datetime import datetime
 from typing import Optional, Dict, List, Union
+import colorama
+
+colorama.init(autoreset=True)
 
 
 class CustomLogger(logging.Logger):
@@ -11,6 +14,14 @@ class CustomLogger(logging.Logger):
     支持自定义输出样式、日志文件配置、不同级别日志分离等功能
     """
     
+    LEVEL_COLORS = {
+        logging.DEBUG: colorama.Fore.CYAN,
+        logging.INFO: colorama.Fore.GREEN,
+        logging.WARNING: colorama.Fore.YELLOW,
+        logging.ERROR: colorama.Fore.RED,
+        logging.CRITICAL: colorama.Back.RED + colorama.Fore.WHITE
+    }
+
     def __init__(self, 
                  name: str,
                  log_level: Union[int, str] = logging.INFO,
@@ -30,6 +41,10 @@ class CustomLogger(logging.Logger):
         :param format_style: 日志格式样式，"simple"或"verbose"，默认为"verbose"
         :param enable_console: 是否在控制台输出日志，默认为True
         """
+
+        if name is None:
+            name = getattr(self, '__class__').__name__
+
         # 调用父类构造函数
         super().__init__(name, log_level)
         
@@ -50,6 +65,12 @@ class CustomLogger(logging.Logger):
         # 配置处理器
         self._configure_handlers()
     
+    def _log(self, level, msg, args, exc_info = None, extra = None, stack_info = False, stacklevel = 1):
+        """重写日志方法，添加颜色支持"""
+        if self.enable_console and level in self.LEVEL_COLORS:
+            msg = self.LEVEL_COLORS[level] + msg + colorama.Style.RESET_ALL
+        return super()._log(level, msg, args, exc_info, extra, stack_info, stacklevel)
+
     def _ensure_log_dir_exists(self) -> None:
         """确保日志目录存在，不存在则创建"""
         if self.log_dir and not os.path.exists(self.log_dir):
@@ -192,8 +213,7 @@ class CustomLogger(logging.Logger):
                 else:
                     log_files["ALL"] = handler.baseFilename
         return log_files
-
-
+    
 # 使用示例
 def test_custom_logger():
     # 创建不同配置的日志实例
@@ -208,7 +228,7 @@ def test_custom_logger():
     separated_logger = CustomLogger(
         name="separated_logger",
         log_level=logging.INFO,
-        log_dir="separated_logs",
+        log_dir="logs/separated_logs",
         separate_levels=True,
         format_style="verbose"
     )
@@ -234,7 +254,7 @@ def test_custom_logger():
     
     # 展示日志文件路径
     print("\n基础日志器文件路径:")
-    for level, path in basic_logger.get_log_fiJle_paths().items():
+    for level, path in basic_logger.get_log_file_paths().items():
         print(f"{level}: {path}")
     
     print("\n分离级别日志器文件路径:")

@@ -17,4 +17,5 @@ dependencies = [
     "matplotlib>=3.10.5",
     "akshare>=1.17.38",
     "yfinance>=0.2.65",
+    "colorama>=0.4.6",
 ]
