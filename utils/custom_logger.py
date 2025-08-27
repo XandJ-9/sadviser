@@ -21,6 +21,8 @@ class CustomLogger(logging.Logger):
         logging.ERROR: colorama.Fore.RED,
         logging.CRITICAL: colorama.Back.RED + colorama.Fore.WHITE
     }
+    def __init__(self):
+      super().__init__(name=self.__class__.__name__)
 
     def __init__(self, 
                  name: str,
