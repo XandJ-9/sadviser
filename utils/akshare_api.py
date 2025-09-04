@@ -1,6 +1,6 @@
 import akshare as ak
 
-def get_stock_data(symbol: str, start_date: str, end_date: str):
+def get_stock_data():
     """
     使用 AkShare 获取股票的日线数据
 
@@ -10,7 +10,7 @@ def get_stock_data(symbol: str, start_date: str, end_date: str):
     :return: 包含日线数据的 DataFrame
     """
     try:
-        df = ak.stock_zh_a_daily(symbol=symbol, start_date=start_date, end_date=end_date)
+        df = ak.stock_zh_a_spot()
         return df
     except Exception as e:
         print(f"获取股票数据时出错: {e}")
