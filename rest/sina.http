@@ -1,4 +1,0 @@
-###
-GET https://hq.sinajs.cn/list=sz300750 HTTP/1.1
-Content-Type: application/application/json
-Referer: https://finance.sina.com.cn

@@ -1,0 +1,215 @@
+.stock-detail-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.error-container p {
+  color: #dc2626;
+  font-size: 16px;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.stock-title {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.stock-symbol {
+  margin: 0;
+  font-size: 18px;
+  color: #666;
+}
+
+.price-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.current-price {
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.price-info.positive {
+  color: #ef4444;
+}
+
+.price-info.negative {
+  color: #22c55e;
+}
+
+.price-change {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.detail-section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.detail-section h2 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+.info-item .label {
+  font-size: 14px;
+  color: #666;
+}
+
+.info-item .value {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.indicators-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.indicator-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+.indicator-name {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.indicator-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.signals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.signal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.signal-item.signal-buy {
+  background-color: #fef2f2;
+  border-left: 3px solid #ef4444;
+}
+
+.signal-item.signal-sell {
+  background-color: #f0fdf4;
+  border-left: 3px solid #22c55e;
+}
+
+.signal-item.signal-hold {
+  background-color: #fef9c3;
+  border-left: 3px solid #eab308;
+}
+
+.signal-date {
+  color: #666;
+}
+
+.signal-type {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.signal-price {
+  font-weight: 500;
+}
+
+.no-data {
+  color: #999;
+  text-align: center;
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .stock-detail-page {
+    padding: 12px;
+  }
+
+  .detail-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .stock-title {
+    font-size: 24px;
+  }
+
+  .current-price {
+    font-size: 28px;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}

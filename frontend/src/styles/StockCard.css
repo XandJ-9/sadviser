@@ -1,0 +1,135 @@
+.stock-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stock-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.stock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.stock-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stock-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.stock-symbol {
+  font-size: 14px;
+  color: #666;
+}
+
+.stock-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.stock-price .price {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.stock-price.positive {
+  color: #ef4444;
+}
+
+.stock-price.negative {
+  color: #22c55e;
+}
+
+.stock-price .change {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.stock-body {
+  margin-bottom: 16px;
+}
+
+.stock-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+.info-item .label {
+  font-size: 13px;
+  color: #666;
+}
+
+.info-item .value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.stock-recommendation {
+  padding: 12px;
+  background: #fef3c7;
+  border-radius: 4px;
+  margin-top: 12px;
+}
+
+.recommendation-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.recommendation-text {
+  font-size: 13px;
+  color: #78350f;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.stock-footer {
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.detail-link {
+  display: block;
+  text-align: center;
+  padding: 8px;
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.detail-link:hover {
+  background-color: #eff6ff;
+}

@@ -1,7 +1,7 @@
 import akshare as ak
 from utils.custom_logger import CustomLogger
 
-logger = CustomLogger()
+logger = CustomLogger("akshare_test_logger")
 
 def test_get_stock_zh_index_daily():
     """测试获取中国股票指数的日线数据"""
@@ -26,7 +26,3 @@ def test_get_stock_with_date():
     data.to_excel("ak_stock_zh_a_spot.xlsx", index=False)
     print("数据已保存到 ak_stock_zh_a_spot.xlsx")
 
-
-if __name__ == "__main__":
-    # test_get_stock_zh_index_daily()
-    test_get_stock_with_date()
