@@ -47,9 +47,6 @@ class TaskResponse(BaseModel):
 # 全局存储实例
 storage_instance: Optional[PostgreSQLStorage] = None
 
-# 任务状态存储（生产环境应使用Redis或数据库）
-task_status: Dict[str, Dict] = {}
-
 
 def get_storage() -> PostgreSQLStorage:
     """获取存储实例"""
@@ -95,6 +92,7 @@ async def fetch_and_store_history(
         任务信息
     """
     task_id = f"task_{datetime.now().timestamp()}"
+    storage = get_storage()
 
     try:
         logger.info(f"创建数据获取任务: {task_id}")
@@ -102,13 +100,25 @@ async def fetch_and_store_history(
         logger.info(f"日期范围: {request.start_date} 到 {request.end_date}")
         logger.info(f"数据源: {request.source}")
 
-        # 更新任务状态
-        task_status[task_id] = {
+        # 创建任务记录
+        task_data = {
+            "id": task_id,
+            "type": "fetch_history",
             "status": "pending",
             "message": "任务已创建",
             "progress": 0,
-            "total": len(request.symbols)
+            "total": len(request.symbols),
+            "success": 0,
+            "failed": 0,
+            "meta": {
+                "symbols": request.symbols,
+                "start_date": request.start_date,
+                "end_date": request.end_date,
+                "source": request.source
+            }
         }
+        
+        await storage.insert("tasks", task_data)
 
         # 添加后台任务
         background_tasks.add_task(
@@ -128,12 +138,19 @@ async def fetch_and_store_history(
 
     except Exception as e:
         logger.error(f"创建数据获取任务失败: {e}")
-        task_status[task_id] = {
-            "status": "failed",
-            "message": str(e),
-            "progress": 0,
-            "total": len(request.symbols)
-        }
+        # 尝试记录失败状态（如果任务ID还没创建成功可能无法记录，这里简单处理）
+        try:
+            await storage.insert("tasks", {
+                "id": task_id,
+                "type": "fetch_history",
+                "status": "failed",
+                "message": str(e),
+                "progress": 0,
+                "total": len(request.symbols)
+            })
+        except:
+            pass
+            
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -279,6 +296,30 @@ async def fetch_and_store_stocklist(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/tasks")
+async def get_all_tasks():
+    """
+    获取所有任务列表
+
+    Returns:
+        任务列表
+    """
+    storage = get_storage()
+    
+    try:
+        # 查询任务列表，按创建时间倒序
+        tasks = await storage.query(
+            "tasks",
+            sort=[("created_at", -1)],
+            limit=50  # 限制最近50条
+        )
+        return tasks
+    except Exception as e:
+        logger.error(f"获取任务列表失败: {e}")
+        # 如果表不存在或查询失败，返回空列表
+        return []
+
+
 @router.get("/task/{task_id}")
 async def get_task_status(task_id: str):
     """
@@ -290,10 +331,13 @@ async def get_task_status(task_id: str):
     Returns:
         任务状态
     """
-    if task_id not in task_status:
+    storage = get_storage()
+    
+    tasks = await storage.query("tasks", conditions={"id": task_id})
+    if not tasks:
         raise HTTPException(status_code=404, detail="任务不存在")
-
-    return task_status[task_id]
+        
+    return tasks[0]
 
 
 @router.post("/store/batch")
@@ -406,16 +450,20 @@ async def fetch_history_task(
         end_date: 结束日期
         create_table: 是否创建表
     """
+    storage = get_storage()
+    
     try:
         logger.info(f"开始执行任务: {task_id}")
 
         # 更新任务状态
-        task_status[task_id]["status"] = "running"
-        task_status[task_id]["message"] = "正在获取数据"
+        await storage.update(
+            "tasks",
+            conditions={"id": task_id},
+            data={"status": "running", "message": "正在获取数据"}
+        )
 
-        # 初始化crawler和storage
+        # 初始化crawler
         crawler = AkshareCrawler()
-        storage = get_storage()
 
         # 如果需要，创建表
         if create_table:
@@ -466,8 +514,16 @@ async def fetch_history_task(
 
                 # 更新进度
                 progress = int((i + 1) / len(symbols) * 100)
-                task_status[task_id]["progress"] = progress
-                task_status[task_id]["message"] = f"已完成 {i+1}/{len(symbols)} 只股票"
+                await storage.update(
+                    "tasks",
+                    conditions={"id": task_id},
+                    data={
+                        "progress": progress,
+                        "success": success_count,
+                        "failed": failed_count,
+                        "message": f"已完成 {i+1}/{len(symbols)} 只股票"
+                    }
+                )
 
                 # 避免请求过快
                 await asyncio.sleep(1)
@@ -477,17 +533,33 @@ async def fetch_history_task(
                 failed_count += 1
 
         # 更新任务状态
-        task_status[task_id]["status"] = "completed"
-        task_status[task_id]["message"] = f"任务完成，成功{success_count}只，失败{failed_count}只"
-        task_status[task_id]["success"] = success_count
-        task_status[task_id]["failed"] = failed_count
+        await storage.update(
+            "tasks",
+            conditions={"id": task_id},
+            data={
+                "status": "completed",
+                "message": f"任务完成，成功{success_count}只，失败{failed_count}只",
+                "success": success_count,
+                "failed": failed_count,
+                "progress": 100
+            }
+        )
 
         logger.info(f"任务完成: {task_id}, 成功: {success_count}, 失败: {failed_count}")
 
     except Exception as e:
         logger.error(f"任务执行失败: {task_id}, 错误: {e}")
-        task_status[task_id]["status"] = "failed"
-        task_status[task_id]["message"] = str(e)
+        try:
+            await storage.update(
+                "tasks",
+                conditions={"id": task_id},
+                data={
+                    "status": "failed",
+                    "message": str(e)
+                }
+            )
+        except:
+            pass
 
 
 @router.get("/status")
@@ -502,17 +574,33 @@ async def get_system_status():
         storage = get_storage()
 
         # 统计信息
-        running_tasks = sum(1 for s in task_status.values() if s.get("status") == "running")
-        completed_tasks = sum(1 for s in task_status.values() if s.get("status") == "completed")
+        # 查询进行中的任务
+        running_tasks = await storage.query("tasks", conditions={"status": "running"})
+        # 查询完成的任务（最近24小时？）这里简单统计总数可能太慢，暂时先不改查询逻辑，只改数据源
+        # 实际生产中应该用count查询，这里storage.query不支持count
+        # 暂时先用查询所有记录来统计（注意性能问题，后续应优化）
+        
+        # 优化：只查最近的任务
+        recent_tasks = await storage.query("tasks", limit=100, sort=[("created_at", -1)])
+        
+        running_count = sum(1 for t in recent_tasks if t.get("status") == "running")
+        completed_count = sum(1 for t in recent_tasks if t.get("status") == "completed")
 
         return {
             "storage_connected": storage.connected,
-            "active_tasks": running_tasks,
-            "completed_tasks": completed_tasks,
-            "total_tasks": len(task_status),
+            "active_tasks": running_count,
+            "completed_tasks": completed_count,
+            "total_tasks": len(recent_tasks), # 暂时返回最近任务数
             "timestamp": datetime.now().isoformat()
         }
 
     except Exception as e:
         logger.error(f"获取系统状态失败: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # 如果出错，返回默认状态
+        return {
+            "storage_connected": False,
+            "active_tasks": 0,
+            "completed_tasks": 0,
+            "total_tasks": 0,
+            "timestamp": datetime.now().isoformat()
+        }

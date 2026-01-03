@@ -69,6 +69,12 @@ async def get_stocks(
 
         storage = get_storage()
 
+        # 先查询总数
+        conn = await storage._get_connection()
+        count_result = await conn.fetch("SELECT COUNT(*) as total FROM stock_list")
+        total_count = count_result[0]['total'] if count_result else 0
+        await storage.pool.release(conn)
+
         # 从数据库获取股票列表
         stocks = await storage.query(
             table_name="stock_list",
@@ -77,7 +83,12 @@ async def get_stocks(
         )
 
         if not stocks:
-            raise HTTPException(status_code=404, detail="未找到股票数据")
+            return {
+                "stocks": [],
+                "total": total_count,
+                "limit": limit,
+                "offset": offset
+            }
 
         # 为每只股票添加最新价格信息
         result = []
@@ -110,7 +121,7 @@ async def get_stocks(
 
         return {
             "stocks": result,
-            "total": len(result),
+            "total": total_count,
             "limit": limit,
             "offset": offset
         }

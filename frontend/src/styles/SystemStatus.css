@@ -1,0 +1,82 @@
+.system-status {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  padding: 1.5rem;
+  color: white;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.status-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.status-indicator {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.status-indicator.connected {
+  background: rgba(34, 197, 94, 0.3);
+  color: #d1fae5;
+}
+
+.status-indicator.disconnected {
+  background: rgba(239, 68, 68, 0.3);
+  color: #fee2e2;
+}
+
+.status-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.metric {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin-bottom: 0.5rem;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.metric-time {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.system-status-loading,
+.system-status-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.status-loading,
+.status-error {
+  font-size: 1rem;
+  opacity: 0.9;
+}

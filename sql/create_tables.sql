@@ -61,7 +61,27 @@ CREATE TABLE IF NOT EXISTS stock_list (
 CREATE INDEX IF NOT EXISTS idx_stock_list_symbol ON stock_list(symbol);
 CREATE INDEX IF NOT EXISTS idx_stock_list_source ON stock_list(source);
 
+-- 任务状态表
+CREATE TABLE IF NOT EXISTS tasks (
+    id VARCHAR(50) PRIMARY KEY,
+    type VARCHAR(50),
+    status VARCHAR(20) NOT NULL,
+    message TEXT,
+    progress INTEGER DEFAULT 0,
+    total INTEGER DEFAULT 0,
+    success INTEGER DEFAULT 0,
+    failed INTEGER DEFAULT 0,
+    meta JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at);
+
 -- 添加注释
 COMMENT ON TABLE stock_daily_data IS '股票日线数据';
 COMMENT ON TABLE stock_quotes IS '实时行情数据';
 COMMENT ON TABLE stock_list IS '股票列表';
+COMMENT ON TABLE tasks IS '系统任务状态';

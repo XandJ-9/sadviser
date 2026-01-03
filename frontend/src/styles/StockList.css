@@ -46,3 +46,82 @@
   font-size: 16px;
   color: #666;
 }
+
+/* 骨架屏样式 */
+.stock-card-skeleton {
+  animation: pulse 1.5s ease-in-out infinite;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-title {
+  width: 120px;
+  height: 24px;
+  margin-bottom: 8px;
+}
+
+.skeleton-symbol {
+  width: 80px;
+  height: 16px;
+}
+
+.stock-price-skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.skeleton-price {
+  width: 80px;
+  height: 24px;
+}
+
+.skeleton-change {
+  width: 60px;
+  height: 16px;
+}
+
+.skeleton-label {
+  width: 60px;
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+.skeleton-value {
+  width: 80px;
+  height: 18px;
+}
+

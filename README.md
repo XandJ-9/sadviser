@@ -25,6 +25,7 @@
 │   │   ├── base_crawler.py  # 爬虫基类 ✅
 │   │   ├── sina_crawler.py  # 新浪财经数据爬取 ✅
 │   │   ├── tushare_crawler.py  # Tushare数据爬取 ✅
+│   │   ├── akshare_crawler.py  # AkShare数据爬取 ✅
 │   │   └── websocket_connector.py  # 实时行情WebSocket连接 ✅
 │   │
 │   ├── storage/  # 数据存储组件
@@ -97,10 +98,11 @@
 │   │   ├── pages/  # 页面组件（首页、推荐列表、详情页等）
 │   │   ├── store/  # 状态管理（Redux/Context）
 │   │   ├── utils/  # 工具函数（格式化、验证等）
-│   │   ├── App.tsx  # 根组件
-│   │   └── index.tsx  # 入口文件
+│   │   ├── App.jsx  # 根组件
+│   │   ├── index.css  # 全局样式
+│   │   └── main.jsx  # 入口文件
 │   ├── package.json  # 依赖配置
-│   └── tsconfig.json  # TypeScript配置
+│   └── vite.config.js  # Vite配置
 │
 ├── infrastructure/  # 基础设施（部署与运维）
 │   ├── docker/  # Docker配置
