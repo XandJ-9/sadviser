@@ -67,11 +67,13 @@ The codebase extensively uses abstract base classes to define interfaces. When i
 
 3. **Technical Indicators** (`calculation/indicators/`): Inherit from `BaseIndicator`
    - Implement `calculate()` method
-   - Use `check_required_data()` to validate input
+   - Override `validate_params()` for parameter validation
+   - Use `check_required_data()` to validate input data
    - Access results via `get_results()`
 
 4. **Trading Strategies** (`calculation/strategies/`): Inherit from `BaseStrategy`
    - Implement `generate_signals()` returning signals (1=buy, 0=hold, -1=sell)
+   - Override `validate_params()` for parameter validation
    - Use `calculate_indicators()` to compute required indicators
    - Built-in performance evaluation via `evaluate()`
 
@@ -83,7 +85,10 @@ The codebase extensively uses abstract base classes to define interfaces. When i
 ### Combiner Pattern
 
 - **IndicatorCombiner**: Calculate multiple indicators simultaneously
-- **StrategyCombiner**: Combine multiple strategies with voting methods (majority_vote, weighted_average, consensus)
+- **StrategyCombiner**: Combine multiple strategies with voting methods:
+  - `majority_vote`: Buy when majority says buy, sell when majority says sell
+  - `weighted_average`: Weighted signal sum with threshold-based decision
+  - `consensus`: Only signal when all strategies agree
 
 ### Logging System
 
@@ -143,6 +148,19 @@ Always use `async def` for data layer methods.
 OHLCV data columns must be: `["open", "high", "low", "close", "volume"]`
 
 Index should be DatetimeIndex for time series operations.
+
+### Parameter Validation Pattern
+
+All base classes support parameter validation through `validate_params()`:
+
+```python
+def validate_params(self) -> None:
+    """Validate strategy parameters, raise ValueError if invalid"""
+    if not isinstance(self.params["window"], int) or self.params["window"] < 2:
+        raise ValueError(f"窗口大小必须是大于1的整数，当前值: {self.params['window']}")
+```
+
+This is called automatically in `__init__()` and should be overridden in subclasses to enforce parameter constraints.
 
 ## Configuration
 
@@ -243,6 +261,18 @@ class MyStrategy(BaseStrategy):
 - **Error Handling**: Use CustomLogger for consistent error logging
 - **Async**: All data layer operations must be async
 
+## Signal Convention
+
+Trading signals follow this convention across the codebase:
+- **1**: Buy signal
+- **0**: Hold/No signal
+- **-1**: Sell signal
+
+This convention is used consistently in:
+- Strategy signal generation (`generate_signals()`)
+- Backtest signal processing
+- Performance evaluation calculations
+
 ## File Organization
 
 ```
@@ -287,3 +317,17 @@ class MyStrategy(BaseStrategy):
 - Integration tests for crawlers and storage
 - End-to-end tests for complete workflows
 - Always test with sample data before production use
+
+## API Structure
+
+The FastAPI application is organized as follows:
+- **Main app**: `service/main.py` - Application entry point with CORS and lifespan management
+- **Router aggregation**: `service/api/api_router.py` - All v1 routes registered under `/api/v1`
+- **API modules**:
+  - `stock_api.py` - Stock data endpoints
+  - `strategy_api.py` - Strategy recommendation endpoints
+  - `backtest_api.py` - Backtesting endpoints
+  - `data_api.py` - Data management endpoints (with storage initialization)
+  - `user_api.py` - User management endpoints
+
+API docs available at `/docs` when server is running.
