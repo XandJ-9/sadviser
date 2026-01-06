@@ -61,9 +61,16 @@ class ApiClient {
 
   /**
    * POST请求
+   * @param {string} endpoint - API端点
+   * @param {object} data - 请求体数据
+   * @param {object} options - 额外选项，如 { params: { key: value } }
    */
-  async post(endpoint, data = {}) {
-    return this.request(endpoint, {
+  async post(endpoint, data = {}, options = {}) {
+    const { params = {} } = options;
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString ? `${endpoint}?${queryString}` : endpoint;
+
+    return this.request(url, {
       method: 'POST',
       body: JSON.stringify(data),
     });

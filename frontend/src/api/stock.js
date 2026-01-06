@@ -45,3 +45,10 @@ export async function searchStocks(keyword, params = {}) {
 export async function getHotStocks(params = {}) {
   return api.get('/api/v1/stocks/hot', params);
 }
+
+/**
+ * 获取市场概览
+ */
+export async function getMarketOverview() {
+  return api.get('/api/v1/stocks/market/overview');
+}

@@ -35,8 +35,8 @@ function TaskList({ refreshKey }) {
   useEffect(() => {
     fetchTasks();
     // 每3秒刷新一次任务状态
-    const interval = setInterval(fetchTasks, 3000);
-    return () => clearInterval(interval);
+    // const interval = setInterval(fetchTasks, 3000);
+    // return () => clearInterval(interval);
   }, [refreshKey]);
 
   // 获取状态样式

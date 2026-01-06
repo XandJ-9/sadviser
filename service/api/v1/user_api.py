@@ -10,7 +10,7 @@ router = APIRouter(prefix='/users', tags=['users'])
 logger = CustomLogger(
     name="user_api",
     log_level=logging.INFO,
-    format_style="simple"
+    
 )
 
 class UserBase(BaseModel):

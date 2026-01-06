@@ -5,17 +5,39 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .api.api_router import router
-from .api.v1 import data_api
+from .core.container import container
+from utils.custom_logger import CustomLogger
+import logging
+
+logger = CustomLogger(
+    name="main",
+    log_level=logging.INFO,
+)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
     # 启动时执行
-    await data_api.initialize_storage()
+    logger.info("应用启动中...")
+    # 预热容器连接（可选）
+    try:
+        storage = container.get_storage()
+        if not storage.connected:
+            await storage.connect()
+        logger.info("数据库连接已建立")
+    except Exception as e:
+        logger.warning(f"数据库连接失败（将在首次使用时重试）: {e}")
+
     yield
+
     # 关闭时执行
-    await data_api.cleanup_storage()
+    logger.info("应用关闭中...")
+    try:
+        await container.close()
+        logger.info("资源已清理")
+    except Exception as e:
+        logger.error(f"资源清理失败: {e}")
 
 
 # 创建FastAPI应用

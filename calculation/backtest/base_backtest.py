@@ -34,7 +34,7 @@ class BaseBacktest:
         self.logger = logger or CustomLogger(
             name="backtest", 
             log_level=logging.INFO,
-            format_style="verbose"
+            
         )
         
         # 回测基本信息

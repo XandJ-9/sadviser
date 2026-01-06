@@ -13,7 +13,7 @@ router = APIRouter(prefix='/strategy', tags=['strategy'])
 logger = CustomLogger(
     name="strategy_api",
     log_level=logging.INFO,
-    format_style="simple"
+    
 )
 
 

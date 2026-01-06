@@ -1,3 +1,6 @@
+"""
+统一日志系统 - 支持控制台和文件的统一格式
+"""
 import logging
 import os
 import sys
@@ -8,12 +11,15 @@ import colorama
 colorama.init(autoreset=True)
 
 
-class CustomLogger(logging.Logger):
+class CustomFormatter(logging.Formatter):
     """
-    自定义日志类，继承自logging.Logger
-    支持自定义输出样式、日志文件配置、不同级别日志分离等功能
+    自定义日志格式化器
+
+    控制台格式：简洁、颜色化、易读
+    文件格式：详细、包含所有调试信息
     """
-    
+
+    # 日志级别颜色映射
     LEVEL_COLORS = {
         logging.DEBUG: colorama.Fore.CYAN,
         logging.INFO: colorama.Fore.GREEN,
@@ -21,104 +27,154 @@ class CustomLogger(logging.Logger):
         logging.ERROR: colorama.Fore.RED,
         logging.CRITICAL: colorama.Back.RED + colorama.Fore.WHITE
     }
-    def __init__(self):
-      super().__init__(name=self.__class__.__name__)
 
-    def __init__(self, 
-                 name: str,
-                 log_level: Union[int, str] = logging.INFO,
-                 log_dir: str = None,
-                 file_name: Optional[str] = None,
-                 separate_levels: bool = False,
-                 format_style: str = "verbose",
-                 enable_console: bool = True):
+    # 日志级别简短标识
+    LEVEL_NAMES = {
+        logging.DEBUG: "DEBUG",
+        logging.INFO: "INFO ",
+        logging.WARNING: "WARN ",
+        logging.ERROR: "ERROR",
+        logging.CRITICAL: "CRIT "
+    }
+
+    def __init__(self, use_color: bool = True, console_mode: bool = True):
+        """
+        初始化格式化器
+
+        Args:
+            use_color: 是否使用颜色
+            console_mode: 是否为控制台模式（控制台格式简洁，文件格式详细）
+        """
+        self.use_color = use_color and console_mode
+        self.console_mode = console_mode
+        super().__init__()
+
+    def format(self, record: logging.LogRecord) -> str:
+        if self.console_mode:
+            return self._format_console(record)
+        else:
+            return self._format_file(record)
+
+    def _format_console(self, record: logging.LogRecord) -> str:
+        """
+        格式化控制台日志 - 简洁、易读
+
+        格式: HH:MM:SS [LEVEL] ModuleName - Message
+        示例: 22:30:45 [INFO] StockService - 获取股票列表成功
+        """
+        # 时间戳（只显示时分秒）
+        timestamp = datetime.fromtimestamp(record.created).strftime("%H:%M:%S")
+
+        # 日志级别
+        level_name = self.LEVEL_NAMES.get(record.levelno, record.levelname)
+
+        # 模块名（只显示最后部分）
+        module_name = record.name.split('.')[-1] if '.' in record.name else record.name
+
+        # 消息
+        message = record.getMessage()
+
+        # 构建格式字符串
+        log_str = f"{timestamp} [{level_name}] {module_name} - {message}"
+
+        # 添加颜色
+        if self.use_color and record.levelno in self.LEVEL_COLORS:
+            color = self.LEVEL_COLORS[record.levelno]
+            log_str = color + log_str + colorama.Style.RESET_ALL
+
+        return log_str
+
+    def _format_file(self, record: logging.LogRecord) -> str:
+        """
+        格式化文件日志 - 详细、包含调试信息
+
+        格式: YYYY-MM-DD HH:MM:SS - LEVEL - module.py:line - function() - Message
+        示例: 2025-01-06 22:30:45 - INFO - stock_service.py:123 - get_stock_list() - 获取股票列表成功
+        """
+        timestamp = self.formatTime(record, "%Y-%m-%d %H:%M:%S")
+        level_name = record.levelname
+        filename = os.path.basename(record.pathname)
+        lineno = record.lineno
+        func_name = record.funcName
+        message = record.getMessage()
+
+        return f"{timestamp} - {level_name:5} - {filename}:{lineno} - {func_name}() - {message}"
+
+
+class CustomLogger(logging.Logger):
+    """
+    自定义日志类
+
+    特点：
+    1. 统一的控制台格式（简洁、颜色化）
+    2. 详细的文件格式（包含完整调试信息）
+    3. 自动处理日志目录
+    4. 支持按级别分离日志文件
+    """
+
+    def __init__(
+        self,
+        name: str,
+        log_level: Union[int, str] = logging.INFO,
+        log_dir: Optional[str] = None,
+        file_name: Optional[str] = None,
+        separate_levels: bool = False,
+        enable_console: bool = True,
+        enable_file: bool = True
+    ):
         """
         初始化自定义日志器
-        
-        :param name: 日志器名称
-        :param log_level: 日志级别，默认为INFO
-        :param log_dir: 日志文件存储目录，默认 log_dir=None 表示不保存日志到文件,此配置下的日志仅输出到控制台
-        :param file_name: 日志文件名，不指定则自动生成
-        :param separate_levels: 是否按级别分离日志文件，True则分别生成debug、info等日志文件
-        :param format_style: 日志格式样式，"simple"或"verbose"，默认为"verbose"
-        :param enable_console: 是否在控制台输出日志，默认为True
+
+        Args:
+            name: 日志器名称
+            log_level: 日志级别，默认为 INFO
+            log_dir: 日志文件存储目录，None 表示不保存到文件
+            file_name: 日志文件名，不指定则自动生成
+            separate_levels: 是否按级别分离日志文件
+            enable_console: 是否在控制台输出日志
+            enable_file: 是否输出到文件
         """
-
-        if name is None:
-            name = getattr(self, '__class__').__name__
-
-        # 调用父类构造函数
         super().__init__(name, log_level)
-        
-        # 初始化配置参数
+
         self.log_dir = log_dir
         self.separate_levels = separate_levels
         self.enable_console = enable_console
-        
+        self.enable_file = enable_file
+
         # 确保日志目录存在
         self._ensure_log_dir_exists()
-        
-        # 生成日志文件名（如果未指定）
+
+        # 生成日志文件名
         self.base_file_name = file_name or self._generate_default_filename()
-        
-        # 设置日志格式
-        self.formatter = self._get_formatter(format_style)
-        
+
         # 配置处理器
         self._configure_handlers()
-    
-    def _log(self, level, msg, args, exc_info = None, extra = None, stack_info = False, stacklevel = 1):
-        """重写日志方法，添加颜色支持"""
-        if self.enable_console and level in self.LEVEL_COLORS:
-            msg = self.LEVEL_COLORS[level] + msg + colorama.Style.RESET_ALL
-        return super()._log(level, msg, args, exc_info, extra, stack_info, stacklevel)
 
     def _ensure_log_dir_exists(self) -> None:
-        """确保日志目录存在，不存在则创建"""
+        """确保日志目录存在"""
         if self.log_dir and not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir, exist_ok=True)
-    
+
     def _generate_default_filename(self) -> str:
-        """生成默认的日志文件名，格式为"YYYYMMDD_HHMMSS_loggerName" """
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        """生成默认的日志文件名"""
+        timestamp = datetime.now().strftime("%Y%m%d")
         return f"{timestamp}_{self.name}"
-    
-    def _get_formatter(self, format_style: str) -> logging.Formatter:
-        """
-        获取日志格式化器
-        
-        :param format_style: 格式样式，"simple"或"verbose"
-        :return: 日志格式化器
-        """
-        if format_style == "simple":
-            # 简单格式
-            format_str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            datefmt = "%Y-%m-%d %H:%M:%S"
-        else:  # verbose
-            # 详细格式，包含更多信息
-            format_str = (
-                "%(asctime)s - %(name)s - %(levelname)s - "
-                "%(filename)s:%(lineno)d - %(funcName)s() - %(message)s"
-            )
-            datefmt = "%Y-%m-%d %H:%M:%S"
-        
-        return logging.Formatter(format_str, datefmt=datefmt)
-    
+
     def _configure_handlers(self) -> None:
-        """配置日志处理器，包括文件处理器和控制台处理器"""
-        # 清除已有的处理器，避免重复输出
+        """配置日志处理器"""
+        # 清除已有处理器
         if self.handlers:
             self.handlers.clear()
-        
+
         # 配置控制台处理器
         if self.enable_console:
             console_handler = logging.StreamHandler(sys.stdout)
-            console_handler.setFormatter(self.formatter)
+            console_handler.setFormatter(CustomFormatter(use_color=True, console_mode=True))
             console_handler.setLevel(self.level)
             self.addHandler(console_handler)
-        
-        if self.log_dir is None:
-            # 如果未指定日志目录，则只使用控制台输出
+
+        # 如果不需要文件日志，直接返回
+        if not self.enable_file or self.log_dir is None:
             return
 
         # 配置文件处理器
@@ -131,23 +187,22 @@ class CustomLogger(logging.Logger):
                 (logging.ERROR, "error"),
                 (logging.CRITICAL, "critical")
             ]
-            
+
             for level, level_name in levels:
-                # 只处理指定级别及以上的日志
                 file_handler = logging.FileHandler(
                     os.path.join(self.log_dir, f"{self.base_file_name}_{level_name}.log")
                 )
-                file_handler.setFormatter(self.formatter)
+                file_handler.setFormatter(CustomFormatter(use_color=False, console_mode=False))
                 file_handler.setLevel(level)
-                
+
                 # 添加过滤器，只保留当前级别的日志
                 class LevelFilter(logging.Filter):
                     def __init__(self, level):
                         self.level = level
-                    
+
                     def filter(self, record):
                         return record.levelno == self.level
-                
+
                 file_handler.addFilter(LevelFilter(level))
                 self.addHandler(file_handler)
         else:
@@ -155,53 +210,22 @@ class CustomLogger(logging.Logger):
             file_handler = logging.FileHandler(
                 os.path.join(self.log_dir, f"{self.base_file_name}.log")
             )
-            file_handler.setFormatter(self.formatter)
+            file_handler.setFormatter(CustomFormatter(use_color=False, console_mode=False))
             file_handler.setLevel(self.level)
             self.addHandler(file_handler)
-    
+
     def set_log_level(self, level: Union[int, str]) -> None:
-        """
-        设置日志级别
-        
-        :param level: 日志级别，可以是整数或字符串，如logging.INFO或"INFO"
-        """
+        """设置日志级别"""
         self.setLevel(level)
-        # 更新所有处理器的级别
         for handler in self.handlers:
             handler.setLevel(level)
-    
-    def set_format_style(self, format_style: str) -> None:
-        """
-        设置日志格式样式
-        
-        :param format_style: 格式样式，"simple"或"verbose"
-        """
-        self.formatter = self._get_formatter(format_style)
-        # 更新所有处理器的格式化器
-        for handler in self.handlers:
-            handler.setFormatter(self.formatter)
-    
-    def add_custom_handler(self, handler: logging.Handler) -> None:
-        """
-        添加自定义处理器
-        
-        :param handler: 日志处理器
-        """
-        handler.setFormatter(self.formatter)
-        handler.setLevel(self.level)
-        self.addHandler(handler)
-    
+
     def get_log_file_paths(self) -> Dict[str, str]:
-        """
-        获取所有日志文件的路径
-        
-        :return: 日志级别与文件路径的字典
-        """
+        """获取所有日志文件的路径"""
         log_files = {}
         for handler in self.handlers:
             if isinstance(handler, logging.FileHandler):
                 if self.separate_levels:
-                    # 从文件名中提取级别信息
                     for level, level_name in [
                         (logging.DEBUG, "debug"),
                         (logging.INFO, "info"),
@@ -215,66 +239,53 @@ class CustomLogger(logging.Logger):
                 else:
                     log_files["ALL"] = handler.baseFilename
         return log_files
-    
-# 使用示例
-def test_custom_logger():
-    # 创建不同配置的日志实例
-    print("创建基础日志器...")
-    basic_logger = CustomLogger(
-        name="basic_logger",
+
+
+# 使用示例和测试
+def demo_logging():
+    """演示统一日志格式"""
+    print("\n" + "=" * 60)
+    print("统一日志格式演示")
+    print("=" * 60 + "\n")
+
+    # 创建日志器
+    logger = CustomLogger(
+        name="DemoModule",
         log_level=logging.DEBUG,
-        format_style="simple"
+        enable_console=True,
+        enable_file=False
     )
-    
-    print("创建分离级别日志器...")
-    separated_logger = CustomLogger(
-        name="separated_logger",
-        log_level=logging.INFO,
-        log_dir="logs/separated_logs",
-        separate_levels=True,
-        format_style="verbose"
-    )
-    
-    # 测试日志输出
-    print("\n测试基础日志器输出...")
-    basic_logger.debug("这是一条调试信息")
-    basic_logger.info("这是一条普通信息")
-    basic_logger.warning("这是一条警告信息")
-    basic_logger.error("这是一条错误信息")
-    basic_logger.critical("这是一条严重错误信息")
-    
-    print("\n测试分离级别日志器输出...")
-    separated_logger.debug("这是一条调试信息")
-    separated_logger.info("这是一条普通信息")
-    separated_logger.warning("这是一条警告信息")
-    separated_logger.error("这是一条错误信息")
-    try:
-        1 / 0
-    except ZeroDivisionError:
-        separated_logger.exception("发生了异常")  # 会自动记录堆栈信息
-    separated_logger.critical("这是一条严重错误信息")
-    
-    # 展示日志文件路径
-    print("\n基础日志器文件路径:")
-    for level, path in basic_logger.get_log_file_paths().items():
-        print(f"{level}: {path}")
-    
-    print("\n分离级别日志器文件路径:")
-    for level, path in separated_logger.get_log_file_paths().items():
-        print(f"{level}: {path}")
-    
-    # 测试动态修改日志级别
-    print("\n修改基础日志器级别为WARNING...")
-    basic_logger.set_log_level(logging.WARNING)
-    basic_logger.info("这条信息不应该被输出")  # 不会被输出
-    basic_logger.warning("这条警告信息应该被输出")  # 会被输出
-    
-    # 测试动态修改日志格式
-    print("\n修改基础日志器格式为verbose...")
-    basic_logger.set_format_style("verbose")
-    basic_logger.warning("这条警告信息应该使用详细格式输出")
+
+    # 演示各级别日志
+    logger.debug("这是一条调试信息")
+    logger.info("这是一条普通信息")
+    logger.warning("这是一条警告信息")
+    logger.error("这是一条错误信息")
+    logger.critical("这是一条严重错误信息")
+
+    print("\n" + "=" * 60)
+    print("不同模块演示")
+    print("=" * 60 + "\n")
+
+    # 创建不同模块的日志器
+    stock_logger = CustomLogger(name="StockService", log_level=logging.INFO)
+    repo_logger = CustomLogger(name="StockRepository", log_level=logging.INFO)
+    api_logger = CustomLogger(name="StockAPI", log_level=logging.INFO)
+
+    stock_logger.info("获取股票列表: limit=50")
+    repo_logger.info("查询数据库: SELECT * FROM stock_list")
+    api_logger.info("处理请求: GET /api/v1/stocks")
+
+    print("\n" + "=" * 60)
+    print("带参数的日志演示")
+    print("=" * 60 + "\n")
+
+    stock_logger.info(f"获取股票详情: symbol={'000001'}")
+    repo_logger.error(f"数据库连接失败: {RuntimeError('Connection timeout')}")
+    api_logger.warning(f"请求参数无效: limit={-1}")
+
+    print()
 
 
 if __name__ == "__main__":
-    test_custom_logger()
-    
+    demo_logging()

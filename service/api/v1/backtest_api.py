@@ -13,7 +13,7 @@ router = APIRouter(prefix='/backtest', tags=['backtest'])
 logger = CustomLogger(
     name="backtest_api",
     log_level=logging.INFO,
-    format_style="simple"
+    
 )
 
 
