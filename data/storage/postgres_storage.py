@@ -6,7 +6,11 @@ from datetime import datetime
 import asyncpg
 from asyncpg import Connection, Pool
 
-from .base_storage import BaseStorage
+import sys
+import pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
+
+from data.storage.base_storage import BaseStorage
 
 
 
@@ -511,8 +515,8 @@ async def test_postgres_storage():
     
     try:
         # 创建测试表
-        await create_stock_tables(storage)
-        
+        create_success = await create_stock_tables(storage)
+        print(f"创建表{'成功' if create_success else '失败'}")
         # 插入测试数据
         stock_info = {
             "code": "sh600000",
