@@ -1,14 +1,9 @@
 # 前后端接口检查报告
 
-## 检查时间
-2026-01-06
+>
+> **更新日期**: 2026-01-06
 
-## 检查范围
-- 前端API文件: `frontend/src/api/*.js`
-- 后端API文件: `service/api/v1/*.py`
-- 涉及页面: 所有使用API的页面和组件
-
-## 检查结果总览
+## 检查摘要
 
 ✅ **接口匹配度**: 24/25 (96%)
 
@@ -18,19 +13,30 @@
 | ⚠️ 已废弃 | 2 | 接口已废弃但前端仍保留引用 |
 | ℹ️ 需注意 | 1 | 路径差异但FastAPI自动处理 |
 
+---
+
+## 接口版本说明
+
+**重要**: API路径不包含版本号，版本管理在后端内部处理
+- **前端调用**: `/api/stocks`, `/api/tasks` 等（无版本号）
+- **后端实现**: `service/api/v1/` 目录（当前版本 v1）
+- **未来升级**: v1 → v2 时，后端内部实现切换，前端调用路径不变
+
+---
+
 ## 详细检查结果
 
-### 1. Stock API (frontend/src/api/stock.js)
+### 1. Stock API
 
 | 前端调用 | 后端路由 | 状态 | 说明 |
 |---------|---------|------|------|
-| GET /api/v1/stocks | GET /api/v1/stocks/ | ✅ | FastAPI自动处理斜尾斜杠 |
-| GET /api/v1/stocks/{symbol} | GET /api/v1/stocks/{symbol} | ✅ | 完全匹配 |
-| GET /api/v1/stocks/{symbol}/history | GET /api/v1/stocks/{symbol}/history | ✅ | 完全匹配 |
-| GET /api/v1/stocks/quote | GET /api/v1/stocks/quote | ✅ | 完全匹配 |
-| GET /api/v1/stocks/search/{keyword} | GET /api/v1/stocks/search/{keyword} | ✅ | 完全匹配 |
-| GET /api/v1/stocks/hot | GET /api/v1/stocks/hot | ✅ | 完全匹配 |
-| GET /api/v1/stocks/market/overview | GET /api/v1/stocks/market/overview | ✅ | 完全匹配 |
+| GET /api/stocks | GET /api/stocks/ | ✅ | FastAPI自动处理斜尾斜杠 |
+| GET /api/stocks/{symbol} | GET /api/stocks/{symbol} | ✅ | 完全匹配 |
+| GET /api/stocks/{symbol}/history | GET /api/stocks/{symbol}/history | ✅ | 完全匹配 |
+| GET /api/stocks/quote | GET /api/stocks/quote | ✅ | 完全匹配 |
+| GET /api/stocks/search/{keyword} | GET /api/stocks/search/{keyword} | ✅ | 完全匹配 |
+| GET /api/stocks/hot | GET /api/stocks/hot | ✅ | 完全匹配 |
+| GET /api/stocks/market/overview | GET /api/stocks/market/overview | ✅ | 完全匹配 |
 
 **参数传递检查**:
 - `getStockQuote(symbols)`: ✅ 正确
@@ -38,20 +44,20 @@
   - 后端: `symbols: str` (逗号分隔)
   - 后端正确处理: `symbol_list = [s.strip() for s in symbols.split(',')]`
 
-### 2. Data API (frontend/src/api/data.js)
+### 2. Data API (Task API)
 
 | 前端调用 | 后端路由 | 状态 | 说明 |
 |---------|---------|------|------|
-| POST /api/v1/tasks/fetch/history | POST /api/v1/tasks/fetch/history | ✅ | 完全匹配 |
-| POST /api/v1/tasks/fetch/realtime | POST /api/v1/tasks/fetch/realtime | ✅ | **已修复** |
-| GET /api/v1/tasks/fetch/stocklist | GET /api/v1/tasks/fetch/stocklist | ✅ | 完全匹配 |
-| GET /api/v1/tasks | GET /api/v1/tasks | ✅ | **已适配** |
-| GET /api/v1/tasks/{task_id} | GET /api/v1/tasks/{task_id} | ✅ | 完全匹配 |
-| GET /api/v1/tasks/recent | GET /api/v1/tasks/recent | ✅ | 新增接口 |
-| GET /api/v1/tasks/stats | GET /api/v1/tasks/stats | ✅ | 新增接口 |
-| GET /api/v1/tasks/status | GET /api/v1/tasks/status | ✅ | 完全匹配 |
-| POST /api/v1/data/store/batch | - | ⚠️ | 已废弃，后端已移除 |
-| GET /api/v1/data/query | - | ⚠️ | 已废弃，后端已移除 |
+| POST /api/tasks/fetch/history | POST /api/tasks/fetch/history | ✅ | 完全匹配 |
+| POST /api/tasks/fetch/realtime | POST /api/tasks/fetch/realtime | ✅ **已修复** |
+| GET /api/tasks/fetch/stocklist | GET /api/tasks/fetch/stocklist | ✅ | 完全匹配 |
+| GET /api/tasks | GET /api/tasks | ✅ **已适配** |
+| GET /api/tasks/{task_id} | GET /api/tasks/{task_id} | ✅ | 完全匹配 |
+| GET /api/tasks/recent | GET /api/tasks/recent | ✅ | 新增接口 |
+| GET /api/tasks/stats | GET /api/tasks/stats | ✅ | 新增接口 |
+| GET /api/tasks/status | GET /api/tasks/status | ✅ | 完全匹配 |
+| POST /api/data/store/batch | - | ⚠️ | 已废弃，后端已移除 |
+| GET /api/data/query | - | ⚠️ | 已废弃，后端已移除 |
 
 **重要修复**:
 
@@ -74,18 +80,20 @@
 - `getRecentTasks(limit)` - 获取最近任务
 - `getTaskStats()` - 获取任务统计
 
-### 3. Strategy API (frontend/src/api/strategy.js)
+### 3. Strategy API
 
 | 前端调用 | 后端路由 | 状态 | 说明 |
 |---------|---------|------|------|
-| GET /api/v1/strategy/recommendations | GET /api/v1/strategy/recommendations | ✅ | 完全匹配 |
-| POST /api/v1/strategy/screen | POST /api/v1/strategy/screen | ✅ | 完全匹配 |
-| GET /api/v1/strategy/signals/{symbol} | GET /api/v1/strategy/signals/{symbol} | ✅ | 完全匹配 |
-| GET /api/v1/strategy/list | GET /api/v1/strategy/list | ✅ | 完全匹配 |
-| POST /api/v1/backtest/create | POST /api/v1/backtest/create | ✅ | 完全匹配 |
-| GET /api/v1/backtest/{task_id} | GET /api/v1/backtest/{task_id} | ✅ | 完全匹配 |
-| GET /api/v1/backtest/{task_id}/trades | GET /api/v1/backtest/{task_id}/trades | ✅ | 完全匹配 |
-| GET /api/v1/backtest/{task_id}/metrics | GET /api/v1/backtest/{task_id}/metrics | ✅ | 完全匹配 |
+| GET /api/strategy/recommendations | GET /api/strategy/recommendations | ✅ | 完全匹配 |
+| POST /api/strategy/screen | POST /api/strategy/screen | ✅ | 完全匹配 |
+| GET /api/strategy/signals/{symbol} | GET /api/strategy/signals/{symbol} | ✅ | 完全匹配 |
+| GET /api/strategy/list | GET /api/strategy/list | ✅ | 完全匹配 |
+| POST /api/backtest/create | POST /api/backtest/create | ✅ | 完全匹配 |
+| GET /api/backtest/{task_id} | GET /api/backtest/{task_id} | ✅ | 完全匹配 |
+| GET /api/backtest/{task_id}/trades | GET /api/backtest/{task_id}/trades | ✅ | 完全匹配 |
+| GET /api/backtest/{task_id}/metrics | GET /api/backtest/{task_id}/metrics | ✅ | 完全匹配 |
+
+---
 
 ## 修复的问题
 
@@ -96,7 +104,7 @@
 **问题描述**:
 ```javascript
 // 前端原始实现
-api.post('/api/v1/tasks/fetch/realtime', { symbols: ['000001', '000002'] })
+api.post('/api/tasks/fetch/realtime', { symbols: ['000001', '000002'] })
 ```
 
 ```python
@@ -157,6 +165,8 @@ async post(endpoint, data = {}, options = {}) {
 
 **验证**: ✅ 修复成功，现在支持 `api.post(url, body, { params })`
 
+---
+
 ## 废弃的接口
 
 以下接口在前端保留但已标记为 `@deprecated`:
@@ -165,6 +175,8 @@ async post(endpoint, data = {}, options = {}) {
 |------|------|------|
 | `batchStoreData(data)` | 后端已移除 | 如果需要，使用task_api重新实现 |
 | `queryData(params)` | 后端已移除 | 改用stock_api的相关查询接口 |
+
+---
 
 ## 构建验证
 
@@ -179,6 +191,8 @@ async post(endpoint, data = {}, options = {}) {
 from service.main import app  # ✅
 from service.api.v1 import task_api  # ✅
 ```
+
+---
 
 ## 建议和后续工作
 
@@ -253,6 +267,8 @@ async request(endpoint, options = {}) {
 export async function fetchRealtimeData(data) { ... }
 ```
 
+---
+
 ## 总结
 
 ### 发现的问题
@@ -283,3 +299,7 @@ PYTHONPATH=/Users/xujia/MyCode/sadviser uv run python tests/check_frontend_apis.
 **✅ 前后端接口对接正常，无阻塞性问题**
 
 所有核心功能接口均已正确匹配，参数传递方式已统一，可以正常使用。
+
+---
+
+*最后更新: 2026-01-06*

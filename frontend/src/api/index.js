@@ -1,5 +1,9 @@
 /**
  * API基础配置
+ *
+ * 注意：API路径不包含版本号，版本管理在后端处理
+ * 例如：使用 /api/stocks 而不是 /api/v1/stocks
+ * 这样便于未来版本升级（v1 → v2）而不影响前端调用
  */
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 

@@ -1,8 +1,14 @@
 # 前端数据管理模块接口迁移总结
 
+> **原文档**: [FRONTEND_API_MIGRATION.md](../FRONTEND_API_MIGRATION.md)
+>
+> **更新日期**: 2026-01-06
+
 ## 概述
 
 成功将前端数据管理模块的API接口从旧的 `data_api` 迁移到新的 `task_api`。
+
+---
 
 ## 修改的文件
 
@@ -69,10 +75,12 @@ async post(endpoint, data = {}, options = {}) {
 这个修改允许 POST 请求同时传递请求体和查询参数，例如：
 
 ```javascript
-api.post('/api/v1/tasks/fetch/realtime', null, {
+api.post('/api/tasks/fetch/realtime', null, {
   params: { symbols: '000001,000002', source: 'akshare', store: 'true' }
 });
 ```
+
+---
 
 ## 关键变更说明
 
@@ -136,6 +144,8 @@ export async function fetchStockList(source = 'akshare', store = false) {
 
 **原因：** 使用明确的 `params` 对象，使代码更清晰。
 
+---
+
 ## 未修改的文件
 
 以下文件无需修改，因为它们只使用了 `data.js` 中导出的函数：
@@ -143,6 +153,8 @@ export async function fetchStockList(source = 'akshare', store = false) {
 - `frontend/src/pages/DataManagementPage.jsx`
 - `frontend/src/components/DataFetchForm.jsx`
 - `frontend/src/components/TaskList.jsx`
+
+---
 
 ## 测试验证
 
@@ -167,6 +179,8 @@ pnpm build
 1. **导出的函数名保持不变** - `getTasks()`, `fetchHistoryData()` 等
 2. **函数签名保持兼容** - 参数类型和顺序没有变化
 3. **返回值格式已适配** - 在 API 层处理了返回值格式的差异
+
+---
 
 ## 使用示例
 
@@ -206,13 +220,17 @@ const status = await getSystemStatus();
 // status: { storage_connected: true, active_tasks: 0, ... }
 ```
 
+---
+
 ## 优势
 
-1. **统一接口风格** - 所有任务相关接口都在 `/api/v1/tasks` 下
+1. **统一接口风格** - 所有任务相关接口都在 `/api/tasks` 下
 2. **更好的架构** - 后端使用 Repository → Service → API 分层
 3. **依赖注入** - 后端使用 FastAPI 的 `Depends()` 系统
 4. **易于维护** - 清晰的代码结构和接口命名
 5. **向后兼容** - 前端组件无需修改，只需更新 API 层
+
+---
 
 ## 总结
 
@@ -225,3 +243,7 @@ const status = await getSystemStatus();
 - 代码质量提升，更易于维护
 
 新的 task_api 系统现在完全替代了旧的 data_api，为前端提供更稳定、更易用的数据管理接口。
+
+---
+
+*最后更新: 2026-01-06*

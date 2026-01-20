@@ -4,7 +4,7 @@ API路由聚合
 from fastapi import APIRouter
 from .v1 import stock_api, strategy_api, backtest_api, task_api, user_api
 
-router = APIRouter(prefix='/api/v1')
+router = APIRouter(prefix='/api')
 
 # 注册各模块路由
 router.include_router(stock_api.router)

@@ -39,7 +39,8 @@ CREATE TABLE IF NOT EXISTS stock_quotes (
     date DATE,
     time TIME,
     source VARCHAR(50) NOT NULL DEFAULT 'akshare',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 创建索引
@@ -72,6 +73,10 @@ CREATE TABLE IF NOT EXISTS tasks (
     success INTEGER DEFAULT 0,
     failed INTEGER DEFAULT 0,
     meta JSONB,
+    priority VARCHAR(20) DEFAULT 'medium',
+    error TEXT,
+    started_at TIMESTAMP,
+    completed_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

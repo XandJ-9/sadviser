@@ -1,8 +1,17 @@
-# stock_api 路由配置验证报告
+# API 路由验证文档
+
+>
+> **说明**: 本文档记录了 stock_api 路由配置的验证结果和最佳实践。
+
+## 概述
+
+本文档详细说明了 FastAPI 路由配置的正确顺序，避免路由冲突问题。
+
+---
 
 ## 路由顺序
 
-当前路由配置（正确的顺序）：
+### 当前路由配置（正确的顺序）
 
 ```
 1. GET /stocks/                      → 获取股票列表
@@ -75,43 +84,6 @@ async def get_stock_detail(symbol: str):
 **效果**：
 - 访问 `/quote` 正确匹配到 `/quote` 路由
 - 访问 `/000001` 正确匹配到 `/{symbol}` 路由
-
-## 路由匹配测试
-
-### 测试用例
-
-| 请求路径 | 匹配的路由 | 说明 |
-|---------|-----------|------|
-| `/stocks/` | `/stocks/` | 股票列表 |
-| `/stocks/?limit=10` | `/stocks/` | 股票列表（带参数） |
-| `/stocks/quote?symbols=000001` | `/stocks/quote` | 实时行情 |
-| `/stocks/hot?limit=10` | `/stocks/hot` | 热门股票 |
-| `/stocks/search/000` | `/stocks/search/{keyword}` | 搜索股票 |
-| `/stocks/market/overview` | `/stocks/market/overview` | 市场概览 |
-| `/stocks/000001` | `/stocks/{symbol}` | 股票详情 |
-| `/stocks/000001/history` | `/stocks/{symbol}/history` | 股票历史 |
-
-### 关键测试
-
-1. **测试 `/quote` 不会被 `/{symbol}` 匹配**
-   - ✅ 正确匹配到 `/quote` 路由
-   - ✅ 不会把 "quote" 当作股票代码
-
-2. **测试 `/hot` 不会被 `/{symbol}` 匹配**
-   - ✅ 正确匹配到 `/hot` 路由
-   - ✅ 不会把 "hot" 当作股票代码
-
-3. **测试 `/search/xxx` 不会被 `/{symbol}` 匹配**
-   - ✅ 正确匹配到 `/search/{keyword}` 路由
-   - ✅ 不会把 "search" 当作股票代码
-
-4. **测试 `/market/overview` 不会被 `/{symbol}` 匹配**
-   - ✅ 正确匹配到 `/market/overview` 路由
-   - ✅ 不会把 "market" 当作股票代码
-
-5. **测试 `/{symbol}/history` 优先级高于 `/{symbol}`**
-   - ✅ `/000001/history` 匹配到 `/{symbol}/history`
-   - ✅ 不会匹配到 `/{symbol}` (把 "history" 当作股票代码)
 
 ## FastAPI 路由匹配规则
 
@@ -199,3 +171,7 @@ for i, route in enumerate(router.routes, 1):
 7. `/stocks/{symbol}` - 第 7 位 ✅
 
 所有路由都能正确匹配，没有冲突！
+
+---
+
+*最后更新: 2026-01-21*

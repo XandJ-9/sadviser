@@ -1,8 +1,14 @@
-# task_api.py 实现总结
+# Task API 实现文档
+
+> **原文档**: [TASK_API_IMPLEMENTATION.md](../TASK_API_IMPLEMENTATION.md)
+>
+> **更新日期**: 2026-01-06
 
 ## 概述
 
 成功创建了 `task_api.py` 来替换旧的 `data_api.py`，实现了完整的数据任务管理系统。
+
+---
 
 ## 实现内容
 
@@ -68,6 +74,8 @@
 - 旧的数据管理API已被重命名为 `.deprecated`
 - 功能已完全迁移到新的 task_api.py
 
+---
+
 ## 架构设计
 
 ### 分层架构
@@ -96,6 +104,8 @@ async def get_all_tasks(
     ...
 ```
 
+---
+
 ## 路由顺序
 
 按照最佳实践，固定路径在前，参数路径在后：
@@ -111,6 +121,8 @@ async def get_all_tasks(
 8. POST   /tasks                    ← 固定路径
 9. GET    /tasks/{task_id}          ← 参数路径（最后）
 ```
+
+---
 
 ## 功能对比
 
@@ -129,6 +141,8 @@ async def get_all_tasks(
 | 依赖注入 | ❌ | ✅ FastAPI Depends |
 | 后台任务 | ✅ | ✅ |
 
+---
+
 ## 验证测试
 
 创建了 `tests/test_task_api.py` 用于验证路由配置：
@@ -142,18 +156,20 @@ PYTHONPATH=/Users/xujia/MyCode/sadviser uv run python tests/test_task_api.py
 - ✅ 参数路径 `/{task_id}` 在最后位置
 - ✅ 没有路由冲突
 
+---
+
 ## 使用示例
 
 ### 1. 获取任务列表
 
 ```bash
-GET /api/v1/tasks?status=completed&limit=10
+GET /api/tasks?status=completed&limit=10
 ```
 
 ### 2. 创建历史数据获取任务
 
 ```bash
-POST /api/v1/tasks/fetch/history
+POST /api/tasks/fetch/history
 {
   "symbols": ["000001", "000002"],
   "start_date": "2024-01-01",
@@ -165,20 +181,22 @@ POST /api/v1/tasks/fetch/history
 ### 3. 查询任务状态
 
 ```bash
-GET /api/v1/tasks/{task_id}
+GET /api/tasks/{task_id}
 ```
 
 ### 4. 获取实时行情
 
 ```bash
-POST /api/v1/tasks/fetch/realtime?symbols=000001,000002&source=akshare&store=true
+POST /api/tasks/fetch/realtime?symbols=000001,000002&source=akshare&store=true
 ```
 
 ### 5. 获取系统状态
 
 ```bash
-GET /api/v1/tasks/status
+GET /api/tasks/status
 ```
+
+---
 
 ## 优势
 
@@ -189,6 +207,8 @@ GET /api/v1/tasks/status
 5. **易于扩展**：添加新功能只需在对应层添加代码
 6. **统一管理**：容器统一管理所有服务实例
 
+---
+
 ## 后续工作建议
 
 1. **添加单元测试**：为 TaskService 和 TaskRepository 添加完整测试
@@ -196,6 +216,8 @@ GET /api/v1/tasks/status
 3. **任务队列**：考虑使用 Celery 替代 FastAPI 的 BackgroundTasks
 4. **错误处理**：统一异常处理机制
 5. **文档完善**：添加更详细的 API 文档和示例
+
+---
 
 ## 总结
 
@@ -206,3 +228,7 @@ GET /api/v1/tasks/status
 - 路由顺序正确，无冲突
 - 所有功能完整实现
 - 代码质量高，易于维护和扩展
+
+---
+
+*最后更新: 2026-01-06*

@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+/* 自定义基础样式 */
+@layer base {
+  * {
+    border-color: #E5E7EB;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* 平滑滚动 */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* 自定义工具类 */
+@layer utilities {
+  /* 文本截断 */
+  .text-truncate {
+    @apply truncate;
+  }
+
+  /* 隐藏滚动条但保留功能 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

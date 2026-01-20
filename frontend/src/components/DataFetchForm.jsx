@@ -1,5 +1,6 @@
 /**
  * 数据获取表单组件
+ * 已更新为后台任务模式 - 所有接口都返回任务信息，数据在后台异步获取
  */
 import { useState } from 'react';
 import { fetchHistoryData, fetchRealtimeData, fetchStockList } from '../api/data';
@@ -11,6 +12,7 @@ function DataFetchForm({ onTaskCreated }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [source, setSource] = useState('akshare');
+  const [priority, setPriority] = useState('medium');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
@@ -26,7 +28,7 @@ function DataFetchForm({ onTaskCreated }) {
       let response;
 
       if (taskType === 'history') {
-        // 获取历史数据
+        // 获取历史数据 - 创建后台任务
         const symbolList = symbols.split(',').map(s => s.trim()).filter(s => s);
         if (symbolList.length === 0) {
           throw new Error('请输入至少一个股票代码');
@@ -36,10 +38,11 @@ function DataFetchForm({ onTaskCreated }) {
           symbols: symbolList,
           start_date: startDate,
           end_date: endDate,
-          source
+          source,
+          priority
         });
       } else if (taskType === 'realtime') {
-        // 获取实时行情
+        // 获取实时行情 - 创建后台任务
         const symbolList = symbols.split(',').map(s => s.trim()).filter(s => s);
         if (symbolList.length === 0) {
           throw new Error('请输入至少一个股票代码');
@@ -47,11 +50,16 @@ function DataFetchForm({ onTaskCreated }) {
 
         response = await fetchRealtimeData({
           symbols: symbolList,
-          source
+          source,
+          store: true  // 默认存储到数据库
         });
       } else if (taskType === 'stocklist') {
-        // 获取股票列表
-        response = await fetchStockList(source, true);
+        // 获取股票列表 - 创建后台任务
+        response = await fetchStockList({
+          source,
+          store: true,  // 默认存储到数据库
+          force_refresh: false
+        });
       }
 
       setResult(response);
@@ -60,7 +68,7 @@ function DataFetchForm({ onTaskCreated }) {
       }
     } catch (err) {
       console.error('创建任务失败:', err);
-      setError(err.message || '创建任务失败');
+      setError(err.response?.data?.detail || err.message || '创建任务失败');
     } finally {
       setLoading(false);
     }
@@ -171,6 +179,22 @@ function DataFetchForm({ onTaskCreated }) {
           <option value="tushare">Tushare (需要Token)</option>
         </select>
       </div>
+
+      {/* 任务优先级选择（仅历史数据任务） */}
+      {taskType === 'history' && (
+        <div className="form-group">
+          <label className="form-label">任务优先级</label>
+          <select
+            className="form-select"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+          >
+            <option value="low">低</option>
+            <option value="medium">中</option>
+            <option value="high">高</option>
+          </select>
+        </div>
+      )}
 
       {/* 错误提示 */}
       {error && (
